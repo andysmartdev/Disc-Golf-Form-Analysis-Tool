@@ -1,5 +1,6 @@
-import { useRef, useId, useState, useCallback } from 'react';
+import { useRef, useId, useState, useCallback, useEffect } from 'react';
 import type { VideoPlayerControls } from '../hooks/useVideoPlayer';
+import { useVideoTransform } from '../hooks/useVideoTransform';
 import type { Side } from '../types';
 import './VideoPanel.css';
 
@@ -30,6 +31,14 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded }: Props) {
     setSyncPoint, clearSyncPoint,
   } = player;
 
+  // ── Zoom / pan transform ──────────────────────────────────────────────────
+  const { containerRef, t: zoom, reset: resetZoom, onMouseDown: onZoomMouseDown, cursor: zoomCursor } =
+    useVideoTransform(isPlaying);
+
+  // Reset zoom whenever a new video is loaded
+  useEffect(() => { resetZoom(); }, [src, resetZoom]);
+
+  // ── File input / drag-and-drop ────────────────────────────────────────────
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) loadFile(file);
@@ -104,21 +113,39 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded }: Props) {
 
       {/* Viewport */}
       <div
+        ref={containerRef}
         className={`video-panel__viewport${isDragging ? ' video-panel__viewport--drag' : ''}`}
+        style={{ cursor: isDragging ? undefined : zoomCursor }}
+        onMouseDown={onZoomMouseDown}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
       >
         {src ? (
-          <video
-            ref={videoRef}
-            src={src}
-            className="video-panel__video"
-            playsInline
-            preload="metadata"
-            onClick={togglePlay}
-          />
+          <>
+            <video
+              ref={videoRef}
+              src={src}
+              className="video-panel__video"
+              playsInline
+              preload="metadata"
+              style={zoom.scale > 1 ? {
+                transform: `translate(${zoom.tx}px, ${zoom.ty}px) scale(${zoom.scale})`,
+                transformOrigin: 'center center',
+              } : undefined}
+            />
+            {zoom.scale > 1 && (
+              <button
+                className="video-panel__zoom-badge"
+                onClick={e => { e.stopPropagation(); resetZoom(); }}
+                onMouseDown={e => e.stopPropagation()}
+                title="Click or double-click to reset zoom"
+              >
+                {zoom.scale.toFixed(1)}×
+              </button>
+            )}
+          </>
         ) : (
           <div
             className="video-panel__empty"

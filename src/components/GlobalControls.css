@@ -1,0 +1,178 @@
+/* ── Global controls card ────────────────────────── */
+.global-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.global-controls__title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.global-controls__title::before,
+.global-controls__title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-subtle);
+}
+
+/* ── Row layouts ─────────────────────────────────── */
+.global-controls__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.global-controls__section-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  min-width: 56px;
+}
+
+/* ── Sync scrubber ───────────────────────────────── */
+.sync-scrubber {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sync-scrubber__label {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sync-scrubber__range-wrap {
+  position: relative;
+  height: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.sync-scrubber__range-wrap input[type='range'] {
+  background: linear-gradient(
+    to right,
+    var(--accent) 0%,
+    var(--accent) calc(var(--pct, 0) * 1%),
+    var(--border) calc(var(--pct, 0) * 1%),
+    var(--border) 100%
+  );
+}
+
+.sync-scrubber__time-display {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Divider ─────────────────────────────────────── */
+.global-controls__divider {
+  height: 1px;
+  background: var(--border-subtle);
+}
+
+/* ── Status bar ──────────────────────────────────── */
+.global-controls__status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-dim);
+  flex-wrap: wrap;
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.status-chip--ok {
+  background: color-mix(in srgb, var(--success) 15%, transparent);
+  color: var(--success);
+  border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
+}
+
+.status-chip--warn {
+  background: color-mix(in srgb, var(--warning) 15%, transparent);
+  color: var(--warning);
+  border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
+}
+
+.status-chip--info {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+/* ── Big play-both button ────────────────────────── */
+.btn--play-both {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Space Grotesk', sans-serif;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  letter-spacing: 0.03em;
+}
+.btn--play-both:hover:not(:disabled) {
+  filter: brightness(1.15);
+  box-shadow: 0 0 20px var(--accent);
+}
+.btn--play-both--pause {
+  background: var(--card-hover);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn--play-both--pause:hover:not(:disabled) {
+  border-color: var(--text-muted);
+  box-shadow: none;
+  filter: none;
+}
+
+.btn--sync-play {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Space Grotesk', sans-serif;
+  background: transparent;
+  color: var(--accent2);
+  border: 1.5px solid var(--accent2);
+}
+.btn--sync-play:hover:not(:disabled) {
+  background: var(--accent2);
+  color: #fff;
+  box-shadow: 0 0 16px var(--accent2);
+}

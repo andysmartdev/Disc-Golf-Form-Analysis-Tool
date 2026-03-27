@@ -1,0 +1,101 @@
+/* ── App shell ───────────────────────────────────── */
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* ── Header ──────────────────────────────────────── */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 4px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 20px;
+  gap: 16px;
+}
+
+.app-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.app-header__logo {
+  width: 40px;
+  height: 40px;
+  color: var(--accent);
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 8px var(--accent));
+}
+
+.app-header__title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.app-header__sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+/* ── Main ────────────────────────────────────────── */
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-bottom: 24px;
+}
+
+/* ── Players grid ────────────────────────────────── */
+.players-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+}
+
+/* ── Controls section ────────────────────────────── */
+.controls-section {
+  width: 100%;
+}
+
+/* ── Footer ──────────────────────────────────────── */
+.app-footer {
+  border-top: 1px solid var(--border-subtle);
+  padding: 14px 4px;
+  font-size: 11px;
+  color: var(--text-dim);
+  text-align: center;
+  letter-spacing: 0.03em;
+}
+
+/* ── Responsive: tablet ──────────────────────────── */
+@media (max-width: 900px) {
+  .app { padding: 0 12px; }
+  .app-header { padding: 14px 4px 12px; margin-bottom: 16px; }
+  .app-header__title { font-size: 1.2rem; }
+  .players-grid { grid-template-columns: 1fr; gap: 12px; }
+}
+
+/* ── Responsive: phone ───────────────────────────── */
+@media (max-width: 600px) {
+  .app { padding: 0 8px; }
+  .app-header { flex-wrap: wrap; gap: 10px; padding: 12px 4px 10px; margin-bottom: 12px; }
+  .app-header__logo { width: 32px; height: 32px; }
+  .app-header__title { font-size: 1.05rem; }
+  .app-header__sub { display: none; }
+  .players-grid { gap: 10px; }
+  .global-controls { padding: 14px 14px; }
+}

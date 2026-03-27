@@ -1,3 +1,4 @@
+import { useCallback, useState } from 'react';
 import { useVideoPlayer } from './hooks/useVideoPlayer';
 import { useTheme } from './hooks/useTheme';
 import { VideoPanel } from './components/VideoPanel';
@@ -9,6 +10,42 @@ export default function App() {
   const { theme, toggleTheme } = useTheme();
   const leftPlayer = useVideoPlayer();
   const rightPlayer = useVideoPlayer();
+  const [globalSpeed, setGlobalSpeed] = useState(1);
+
+  const handleGlobalSpeed = useCallback((rate: number) => {
+    setGlobalSpeed(rate);
+    leftPlayer.setPlaybackRate(rate);
+    rightPlayer.setPlaybackRate(rate);
+  }, [leftPlayer, rightPlayer]);
+
+  // When either player loads a new video, reset both players and global speed.
+  const handleLeftLoad = useCallback((file: File) => {
+    leftPlayer.loadFile(file);
+    rightPlayer.reset();
+    setGlobalSpeed(1);
+  }, [leftPlayer, rightPlayer]);
+
+  const handleRightLoad = useCallback((file: File) => {
+    rightPlayer.loadFile(file);
+    leftPlayer.reset();
+    setGlobalSpeed(1);
+  }, [leftPlayer, rightPlayer]);
+
+  // Clearing a sync point stops both players — sync context is no longer valid.
+  const handleClearLeftSync = useCallback(() => {
+    leftPlayer.clearSyncPoint();
+    leftPlayer.pause();
+    rightPlayer.pause();
+  }, [leftPlayer, rightPlayer]);
+
+  const handleClearRightSync = useCallback(() => {
+    rightPlayer.clearSyncPoint();
+    leftPlayer.pause();
+    rightPlayer.pause();
+  }, [leftPlayer, rightPlayer]);
+
+  const leftPlayerWithReset = { ...leftPlayer, loadFile: handleLeftLoad, clearSyncPoint: handleClearLeftSync };
+  const rightPlayerWithReset = { ...rightPlayer, loadFile: handleRightLoad, clearSyncPoint: handleClearRightSync };
 
   return (
     <div className="app">
@@ -34,13 +71,18 @@ export default function App() {
       <main className="app-main">
         {/* Video players */}
         <section className="players-grid" aria-label="Video players">
-          <VideoPanel side="left" player={leftPlayer} />
-          <VideoPanel side="right" player={rightPlayer} />
+          <VideoPanel side="left" player={leftPlayerWithReset} globalSpeed={globalSpeed} bothLoaded={!!leftPlayer.src && !!rightPlayer.src} />
+          <VideoPanel side="right" player={rightPlayerWithReset} globalSpeed={globalSpeed} bothLoaded={!!leftPlayer.src && !!rightPlayer.src} />
         </section>
 
         {/* Global controls */}
         <section className="controls-section" aria-label="Global controls">
-          <GlobalControls left={leftPlayer} right={rightPlayer} />
+          <GlobalControls
+            left={leftPlayerWithReset}
+            right={rightPlayerWithReset}
+            globalSpeed={globalSpeed}
+            onSpeedChange={handleGlobalSpeed}
+          />
         </section>
       </main>
 

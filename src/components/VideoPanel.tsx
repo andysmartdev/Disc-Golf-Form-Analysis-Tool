@@ -3,8 +3,6 @@ import type { VideoPlayerControls } from '../hooks/useVideoPlayer';
 import type { Side } from '../types';
 import './VideoPanel.css';
 
-const SPEED_OPTIONS = [0.1, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
-
 function formatTime(seconds: number): string {
   if (!isFinite(seconds) || isNaN(seconds)) return '0:00.00';
   const m = Math.floor(seconds / 60);
@@ -16,9 +14,11 @@ function formatTime(seconds: number): string {
 interface Props {
   side: Side;
   player: VideoPlayerControls;
+  globalSpeed: number;
+  bothLoaded: boolean;
 }
 
-export function VideoPanel({ side, player }: Props) {
+export function VideoPanel({ side, player, globalSpeed, bothLoaded }: Props) {
   const fileInputId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -26,7 +26,7 @@ export function VideoPanel({ side, player }: Props) {
 
   const {
     videoRef, src, fileName, isPlaying, currentTime, duration,
-    playbackRate, syncPoint, loadFile, togglePlay, seek, setPlaybackRate,
+    syncPoint, loadFile, togglePlay, seek,
     setSyncPoint, clearSyncPoint,
   } = player;
 
@@ -153,7 +153,7 @@ export function VideoPanel({ side, player }: Props) {
             {syncMarkerPercent !== null && (
               <div
                 className="scrubber-track__sync-marker"
-                style={{ left: `${syncMarkerPercent}%` }}
+                style={{ left: `calc(${syncMarkerPercent}% + ${(1 - 2 * syncMarkerPercent / 100) * 7}px)` }}
                 title={`Sync point: ${formatTime(syncPoint!)}`}
               />
             )}
@@ -167,7 +167,7 @@ export function VideoPanel({ side, player }: Props) {
         <div className="controls-row">
           {/* Play/Pause */}
           <button
-            className={`btn btn--icon ${src ? 'btn--primary' : 'btn--ghost'}`}
+            className={`btn btn--icon ${isPlaying ? 'btn--playing' : src ? 'btn--primary' : 'btn--ghost'}`}
             onClick={togglePlay}
             disabled={!src}
             aria-label={isPlaying ? 'Pause' : 'Play'}
@@ -196,26 +196,18 @@ export function VideoPanel({ side, player }: Props) {
             ⊙
           </button>
 
-          {/* Speed */}
-          <select
-            className="speed-select"
-            value={playbackRate}
-            onChange={e => setPlaybackRate(parseFloat(e.target.value))}
-            disabled={!src}
-            aria-label="Playback speed"
-          >
-            {SPEED_OPTIONS.map(s => (
-              <option key={s} value={s}>{s === 1 ? '1× Speed' : `${s}×`}</option>
-            ))}
-          </select>
+          {/* Speed label (controlled globally) */}
+          <span className="speed-label" title="Speed is controlled globally">
+            {globalSpeed}×
+          </span>
 
           {/* Set sync point */}
           <button
             className={`btn btn--ghost ${syncPoint !== null ? 'btn--active' : 'btn--accent2'}`}
             style={{ marginLeft: 'auto' }}
             onClick={setSyncPoint}
-            disabled={!src}
-            title="Mark current position as sync point"
+            disabled={!bothLoaded}
+            title={bothLoaded ? 'Mark current position as sync point' : 'Load a video into both players first'}
           >
             ⌖ Set Sync
           </button>
@@ -225,7 +217,7 @@ export function VideoPanel({ side, player }: Props) {
             <>
               <div className="sync-badge">
                 <span>⌖</span>
-                <span>{formatTime(syncPoint)}</span>
+                <span className="sync-badge__time">{formatTime(syncPoint)}</span>
               </div>
               <button
                 className="btn btn--icon btn--danger"

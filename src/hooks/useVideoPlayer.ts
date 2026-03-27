@@ -17,7 +17,7 @@ export interface VideoPlayerControls {
   setPlaybackRate: (rate: number) => void;
   setSyncPoint: () => void;
   clearSyncPoint: () => void;
-  setCurrentTime: (t: number) => void;
+  reset: () => void;
 }
 
 export function useVideoPlayer(): VideoPlayerControls {
@@ -30,34 +30,55 @@ export function useVideoPlayer(): VideoPlayerControls {
   const [playbackRate, setPlaybackRateState] = useState(1);
   const [syncPoint, setSyncPointState] = useState<number | null>(null);
 
+  // Re-run when src changes: the <video> element only exists when src is truthy,
+  // so we need to (re-)attach listeners each time it appears or swaps.
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    const onTimeUpdate = () => setCurrentTime(video.currentTime);
-    const onDurationChange = () => setDuration(video.duration || 0);
-    const onPlay = () => setIsPlaying(true);
-    const onPause = () => setIsPlaying(false);
-    const onEnded = () => setIsPlaying(false);
+    const onTimeUpdate    = () => setCurrentTime(video.currentTime);
+    const onDurationChange = () => setDuration(isFinite(video.duration) ? video.duration : 0);
+    const onPlay          = () => setIsPlaying(true);
+    const onPause         = () => setIsPlaying(false);
+    const onEnded         = () => setIsPlaying(false);
+    const onError         = () => { setIsPlaying(false); setDuration(0); };
 
-    video.addEventListener('timeupdate', onTimeUpdate);
+    // Recover from a stalled decode pipeline: reload source, seek back, resume.
+    const onStalled = () => {
+      if (!video.src) return;
+      const t = video.currentTime;
+      const wasPlaying = !video.paused;
+      video.load();
+      video.currentTime = t;
+      if (wasPlaying) video.play().catch(() => {});
+    };
+
+    video.addEventListener('timeupdate',     onTimeUpdate);
     video.addEventListener('durationchange', onDurationChange);
     video.addEventListener('loadedmetadata', onDurationChange);
-    video.addEventListener('play', onPlay);
-    video.addEventListener('pause', onPause);
-    video.addEventListener('ended', onEnded);
+    video.addEventListener('play',           onPlay);
+    video.addEventListener('pause',          onPause);
+    video.addEventListener('ended',          onEnded);
+    video.addEventListener('stalled',        onStalled);
+    video.addEventListener('error',          onError);
 
     return () => {
-      video.removeEventListener('timeupdate', onTimeUpdate);
+      video.removeEventListener('timeupdate',     onTimeUpdate);
       video.removeEventListener('durationchange', onDurationChange);
       video.removeEventListener('loadedmetadata', onDurationChange);
-      video.removeEventListener('play', onPlay);
-      video.removeEventListener('pause', onPause);
-      video.removeEventListener('ended', onEnded);
+      video.removeEventListener('play',           onPlay);
+      video.removeEventListener('pause',          onPause);
+      video.removeEventListener('ended',          onEnded);
+      video.removeEventListener('stalled',        onStalled);
+      video.removeEventListener('error',          onError);
     };
   }, [src]);
 
   const loadFile = useCallback((file: File) => {
+    const v = videoRef.current;
+    // Explicitly pause before changing src so no stale play promise is in flight.
+    if (v) v.pause();
+
     const url = URL.createObjectURL(file);
     setSrc(prev => {
       if (prev) URL.revokeObjectURL(prev);
@@ -69,15 +90,23 @@ export function useVideoPlayer(): VideoPlayerControls {
     setDuration(0);
     setSyncPointState(null);
     setPlaybackRateState(1);
-    if (videoRef.current) videoRef.current.playbackRate = 1;
+    if (v) v.playbackRate = 1;
   }, []);
 
-  const play = useCallback(() => { videoRef.current?.play(); }, []);
-  const pause = useCallback(() => { videoRef.current?.pause(); }, []);
+  // play() returns a Promise — always catch AbortError to avoid unhandled
+  // rejections that can corrupt the element's internal play pipeline.
+  const play = useCallback(() => {
+    videoRef.current?.play().catch(() => {});
+  }, []);
+
+  const pause = useCallback(() => {
+    videoRef.current?.pause();
+  }, []);
+
   const togglePlay = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
-    v.paused ? v.play() : v.pause();
+    if (v.paused) v.play().catch(() => {}); else v.pause();
   }, []);
 
   const seek = useCallback((time: number) => {
@@ -99,6 +128,19 @@ export function useVideoPlayer(): VideoPlayerControls {
 
   const clearSyncPoint = useCallback(() => setSyncPointState(null), []);
 
+  const reset = useCallback(() => {
+    const v = videoRef.current;
+    if (v) {
+      v.pause();
+      v.currentTime = 0;
+      v.playbackRate = 1;
+    }
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setPlaybackRateState(1);
+    setSyncPointState(null);
+  }, []);
+
   return {
     videoRef,
     src,
@@ -116,6 +158,6 @@ export function useVideoPlayer(): VideoPlayerControls {
     setPlaybackRate,
     setSyncPoint,
     clearSyncPoint,
-    setCurrentTime,
+    reset,
   };
 }

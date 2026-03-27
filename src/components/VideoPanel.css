@@ -22,12 +22,12 @@
   background: var(--surface);
   border-bottom: 1px solid var(--border-subtle);
   gap: 8px;
-  min-height: 44px;
+  min-height: var(--h-panel-hdr);
 }
 
 .video-panel__label {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -35,7 +35,7 @@
 }
 
 .video-panel__filename {
-  font-size: 12px;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -68,7 +68,7 @@
   align-items: center;
   justify-content: center;
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.1rem;
+  font-size: var(--fs-icon);
   font-weight: 600;
   color: var(--accent);
   background: rgba(0, 200, 255, 0.08);
@@ -104,7 +104,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: var(--fs-icon);
   color: var(--text-dim);
   transition: border-color 0.2s, color 0.2s;
 }
@@ -114,12 +114,12 @@
 }
 
 .video-panel__empty-text {
-  font-size: 13px;
+  font-size: var(--fs-md);
   color: var(--text-muted);
   font-weight: 500;
 }
 .video-panel__empty-sub {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   color: var(--text-dim);
 }
 
@@ -141,7 +141,7 @@
 }
 
 .scrubber-row__time {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-variant-numeric: tabular-nums;
   color: var(--text-muted);
   white-space: nowrap;
@@ -176,7 +176,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  min-width: 0;
 }
 
 .btn {
@@ -184,16 +185,16 @@
   align-items: center;
   justify-content: center;
   gap: 5px;
-  height: 32px;
+  height: var(--h-btn);
   padding: 0 12px;
   border-radius: 8px;
-  font-size: 12px;
+  font-size: var(--fs-sm);
   font-weight: 500;
   letter-spacing: 0.02em;
 }
 
 .btn--icon {
-  width: 32px;
+  width: var(--h-btn);
   padding: 0;
   border-radius: 8px;
 }
@@ -203,6 +204,12 @@
   color: #000;
 }
 .btn--primary:hover { filter: brightness(1.15); box-shadow: 0 0 12px var(--accent); }
+
+.btn--playing {
+  background: var(--success);
+  color: #000;
+}
+.btn--playing:hover { filter: brightness(1.15); box-shadow: 0 0 12px var(--success); }
 
 .btn--ghost {
   background: transparent;
@@ -238,15 +245,32 @@
   pointer-events: none;
 }
 
+/* ── Speed label (read-only, set globally) ───────── */
+.speed-label {
+  display: inline-flex;
+  align-items: center;
+  height: var(--h-btn);
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  background: var(--card);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  user-select: none;
+}
+
 /* ── Speed selector ──────────────────────────────── */
 .speed-select {
-  height: 32px;
+  height: var(--h-btn);
   padding: 0 8px;
   border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--card);
   color: var(--text);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   font-family: inherit;
   cursor: pointer;
   outline: none;
@@ -261,11 +285,11 @@
   align-items: center;
   gap: 5px;
   padding: 0 8px;
-  height: 22px;
+  height: var(--h-badge);
   border-radius: 6px;
   background: color-mix(in srgb, var(--accent2) 15%, transparent);
   border: 1px solid color-mix(in srgb, var(--accent2) 40%, transparent);
-  font-size: 11px;
+  font-size: var(--fs-xs);
   color: var(--accent2);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -279,8 +303,8 @@
   background: transparent;
   color: var(--accent);
   border: 1px solid var(--accent);
-  font-size: 11px;
-  height: 26px;
+  font-size: var(--fs-xs);
+  height: var(--h-btn-xs);
   padding: 0 10px;
   border-radius: 6px;
   white-space: nowrap;
@@ -290,3 +314,26 @@
   color: #000;
   box-shadow: 0 0 10px var(--accent);
 }
+
+/* ── Narrow panel: keep controls on one line ─────── */
+/* Triggered on small phones or extreme zoom where panel width < ~420px */
+@media (max-width: 420px) {
+  .video-panel__controls { padding: 10px 10px 12px; }
+
+  .controls-row { gap: 4px; }
+
+  /* Tighten icon buttons */
+  .btn--icon { width: calc(var(--h-btn) - 4px); }
+
+  /* Compress text buttons */
+  .btn--load,
+  .controls-row > .btn:not(.btn--icon) { padding: 0 7px; }
+
+  /* Speed label narrower */
+  .speed-label { padding: 0 6px; }
+
+  /* Sync badge: hide the timestamp, keep the icon so badge stays narrow */
+  .sync-badge .sync-badge__time { display: none; }
+  .sync-badge { padding: 0 6px; gap: 0; }
+}
+

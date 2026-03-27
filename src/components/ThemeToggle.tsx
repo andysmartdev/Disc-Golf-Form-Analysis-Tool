@@ -20,7 +20,6 @@ export function ThemeToggle({ theme, onToggle }: Props) {
         </span>
         <span className="theme-toggle__thumb" />
       </button>
-      <span className="theme-toggle__label">{theme}</span>
     </div>
   );
 }

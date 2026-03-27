@@ -1,4 +1,24 @@
 /* ── CSS Custom Properties ─────────────────────────── */
+
+/* Font & size scale — dvh-based, zoom-invariant.
+   Calibrated for a 1080px display (1dvh ≈ 10.8px).
+   clamp() floors prevent unreadable text on very short screens. */
+:root {
+  --fs-2xs:  clamp(7px,  0.85dvh, 11px);  /* ~9px  */
+  --fs-xs:   clamp(9px,  1dvh,    13px);  /* ~11px */
+  --fs-sm:   clamp(10px, 1.1dvh,  14px); /* ~12px */
+  --fs-md:   clamp(11px, 1.2dvh,  15px); /* ~13px */
+  --fs-lg:   clamp(12px, 1.3dvh,  16px); /* ~14px */
+  --fs-xl:   clamp(18px, 1.9dvh,  24px); /* ~20px */
+  --fs-icon: clamp(18px, 2dvh,    26px); /* ~22px */
+
+  /* UI element heights */
+  --h-btn-xs: clamp(22px, 2.4dvh, 30px); /* ~26px */
+  --h-btn:    clamp(28px, 2.9dvh, 36px); /* ~32px */
+  --h-btn-lg: clamp(34px, 3.7dvh, 46px); /* ~40px */
+  --h-badge:  clamp(18px, 2dvh,   26px); /* ~22px */
+  --h-panel-hdr: clamp(36px, 4dvh, 52px);/* ~44px */
+}
 :root[data-theme='dark'] {
   --bg:          #080b14;
   --surface:     #0f1420;
@@ -44,7 +64,7 @@
 /* ── Reset ─────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { font-size: 16px; }
+html { font-size: clamp(12px, 1.5dvh, 18px); }
 
 body {
   font-family: 'Inter', system-ui, sans-serif;

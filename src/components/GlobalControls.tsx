@@ -3,6 +3,7 @@ import type { VideoPlayerControls } from '../hooks/useVideoPlayer';
 import './GlobalControls.css';
 
 const SPEED_OPTIONS = [0.1, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
+const DRIFT_THRESHOLD = 0.1; // seconds before we flag as drifted
 
 function formatTime(seconds: number): string {
   if (!isFinite(seconds) || isNaN(seconds)) return '0:00.00';
@@ -12,25 +13,41 @@ function formatTime(seconds: number): string {
   return `${m}:${String(s).padStart(2, '0')}.${String(cs).padStart(2, '0')}`;
 }
 
+function formatDrift(seconds: number): string {
+  return seconds < 1 ? `${Math.round(seconds * 1000)}ms` : `${seconds.toFixed(2)}s`;
+}
+
 interface Props {
   left: VideoPlayerControls;
   right: VideoPlayerControls;
+  globalSpeed: number;
+  onSpeedChange: (rate: number) => void;
 }
 
-export function GlobalControls({ left, right }: Props) {
+export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Props) {
   const bothLoaded = !!left.src && !!right.src;
   const bothSynced = left.syncPoint !== null && right.syncPoint !== null;
 
+  // How much video is available after both sync points (shortest window wins).
   const syncDuration = bothSynced
-    ? Math.min(
+    ? Math.max(0, Math.min(
         (left.duration || 0) - left.syncPoint!,
         (right.duration || 0) - right.syncPoint!
-      )
+      ))
     : 0;
 
-  const syncOffset = bothSynced && left.syncPoint !== null
-    ? Math.max(0, left.currentTime - left.syncPoint)
-    : 0;
+  // Derive offset directly from actual video positions — scrubber stays live
+  // during playback and reflects any individual player movements immediately.
+  const leftOffset  = bothSynced ? left.currentTime  - left.syncPoint!  : 0;
+  const rightOffset = bothSynced ? right.currentTime - right.syncPoint! : 0;
+
+  // Clamp to [0, syncDuration] for the scrubber range
+  const syncOffset = Math.max(0, Math.min(leftOffset, syncDuration));
+  const syncScrubPct = syncDuration > 0 ? (syncOffset / syncDuration) * 100 : 0;
+
+  // Drift: how far apart are the players relative to their sync points?
+  const drift = bothSynced ? Math.abs(leftOffset - rightOffset) : 0;
+  const isDrifted = drift > DRIFT_THRESHOLD;
 
   const eitherPlaying = left.isPlaying || right.isPlaying;
 
@@ -44,20 +61,18 @@ export function GlobalControls({ left, right }: Props) {
     right.pause();
   }, [left, right]);
 
-  const syncPlay = useCallback(() => {
+  const sync = useCallback(() => {
     if (!bothSynced) return;
+    const wasPlaying = eitherPlaying;
     left.seek(left.syncPoint!);
     right.seek(right.syncPoint!);
-    setTimeout(() => {
-      left.play();
-      right.play();
-    }, 50);
-  }, [left, right, bothSynced]);
-
-  const handleGlobalSpeed = useCallback((rate: number) => {
-    left.setPlaybackRate(rate);
-    right.setPlaybackRate(rate);
-  }, [left, right]);
+    if (wasPlaying) {
+      setTimeout(() => {
+        left.play();
+        right.play();
+      }, 50);
+    }
+  }, [left, right, bothSynced, eitherPlaying]);
 
   const handleSyncScrub = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (!bothSynced) return;
@@ -65,8 +80,6 @@ export function GlobalControls({ left, right }: Props) {
     left.seek(left.syncPoint! + offset);
     right.seek(right.syncPoint! + offset);
   }, [left, right, bothSynced]);
-
-  const syncScrubPct = syncDuration > 0 ? (syncOffset / syncDuration) * 100 : 0;
 
   return (
     <div className="global-controls">
@@ -95,25 +108,24 @@ export function GlobalControls({ left, right }: Props) {
         )}
 
         <button
-          className="btn btn--sync-play"
-          onClick={syncPlay}
+          className={`btn btn--sync-play${isDrifted ? ' btn--sync-play--drifted' : ''}`}
+          onClick={sync}
           disabled={!bothSynced}
-          title={bothSynced ? 'Seek both to their sync points and play' : 'Set sync points on both players first'}
+          title={bothSynced ? 'Return both videos to their sync points' : 'Set sync points on both players first'}
         >
-          ⌖ Sync &amp; Play
+          ⌖ Sync
         </button>
 
         {/* Global speed */}
         <span className="global-controls__section-label" style={{ marginLeft: '8px' }}>Speed</span>
         <select
           className="speed-select"
-          defaultValue={1}
-          onChange={e => handleGlobalSpeed(parseFloat(e.target.value))}
-          disabled={!bothLoaded}
+          value={globalSpeed}
+          onChange={e => onSpeedChange(parseFloat(e.target.value))}
           aria-label="Set speed for both players"
         >
           {SPEED_OPTIONS.map(s => (
-            <option key={s} value={s}>{s === 1 ? '1× (Both)' : `${s}× (Both)`}</option>
+            <option key={s} value={s}>{s === 1 ? '1×' : `${s}×`}</option>
           ))}
         </select>
       </div>
@@ -125,7 +137,16 @@ export function GlobalControls({ left, right }: Props) {
           <div className="sync-scrubber">
             <div className="sync-scrubber__label">
               <span>⌖ Synchronized Scrub</span>
-              <span>offset: +{formatTime(syncOffset)}</span>
+              <div className="sync-scrubber__label-right">
+                <span
+                  className="drift-badge"
+                  style={{ visibility: isDrifted ? 'visible' : 'hidden' }}
+                  title="Players are out of sync — click ⌖ Sync to realign"
+                >
+                  ⚡ {formatDrift(drift)} drift
+                </span>
+                <span>+{formatTime(syncOffset)}</span>
+              </div>
             </div>
             <div className="sync-scrubber__range-wrap">
               <input
@@ -135,13 +156,14 @@ export function GlobalControls({ left, right }: Props) {
                 step={0.01}
                 value={syncOffset}
                 onChange={handleSyncScrub}
+                className={isDrifted ? 'scrubber--drifted' : ''}
                 style={{ '--pct': syncScrubPct } as React.CSSProperties}
                 aria-label="Synchronized scrubber"
               />
             </div>
             <div className="sync-scrubber__time-display">
               <span>A sync: {formatTime(left.syncPoint!)}</span>
-              <span>← scrub both →</span>
+              <span className="sync-scrubber__center-label">← scrub both →</span>
               <span>B sync: {formatTime(right.syncPoint!)}</span>
             </div>
           </div>
@@ -151,23 +173,36 @@ export function GlobalControls({ left, right }: Props) {
       {/* Status */}
       <div className="global-controls__divider" />
       <div className="global-controls__status">
-        <span className={`status-chip ${left.src ? 'status-chip--ok' : 'status-chip--warn'}`}>
-          A {left.src ? '✓' : '✗'}
+        <span className={`status-chip ${
+          left.syncPoint !== null ? 'status-chip--ok' :
+          left.src ? 'status-chip--warn' : 'status-chip--dim'
+        }`}>
+          A {left.syncPoint !== null ? '✓' : '✗'}
         </span>
-        <span className={`status-chip ${right.src ? 'status-chip--ok' : 'status-chip--warn'}`}>
-          B {right.src ? '✓' : '✗'}
+        <span className={`status-chip ${
+          right.syncPoint !== null ? 'status-chip--ok' :
+          right.src ? 'status-chip--warn' : 'status-chip--dim'
+        }`}>
+          B {right.syncPoint !== null ? '✓' : '✗'}
         </span>
-        {bothSynced && (
-          <span className="status-chip status-chip--info">⌖ Synced</span>
+        {bothSynced && !isDrifted && (
+          <span className="status-chip status-chip--info">⌖ In Sync</span>
         )}
-        {!bothSynced && bothLoaded && (
-          <span style={{ color: 'var(--text-dim)', fontSize: '11px' }}>
-            Set sync points on both players to enable synchronized scrubbing
-          </span>
+        {bothSynced && isDrifted && (
+          <span className="status-chip status-chip--warn">⚡ Drifted</span>
         )}
         {!bothLoaded && (
-          <span style={{ color: 'var(--text-dim)', fontSize: '11px' }}>
-            Load videos into both players to enable global controls
+          <span style={{ color: 'var(--text-dim)', fontSize: 'var(--fs-xs)' }}>
+            Load videos into both players to get started
+          </span>
+        )}
+        {bothLoaded && !bothSynced && (
+          <span style={{ color: 'var(--text-dim)', fontSize: 'var(--fs-xs)' }}>
+            {left.syncPoint === null && right.syncPoint === null
+              ? 'Set sync points on both players to enable synchronized scrubbing'
+              : left.syncPoint === null
+              ? 'Set a sync point on Player A to enable synchronized scrubbing'
+              : 'Set a sync point on Player B to enable synchronized scrubbing'}
           </span>
         )}
       </div>

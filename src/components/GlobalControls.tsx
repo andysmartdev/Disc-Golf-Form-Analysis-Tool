@@ -107,6 +107,7 @@ export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Prop
             className="btn btn--play-both btn--play-both--pause"
             onClick={pauseBoth}
             disabled={!bothLoaded}
+            title="Pause both (Space)"
           >
             ⏸ Pause
           </button>
@@ -115,6 +116,7 @@ export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Prop
             className="btn btn--play-both"
             onClick={playBoth}
             disabled={!bothLoaded}
+            title="Play both (Space)"
           >
             ▶ Play
           </button>
@@ -124,7 +126,9 @@ export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Prop
           className={`btn btn--sync-play${isDrifted ? ' btn--sync-play--drifted' : ''}`}
           onClick={sync}
           disabled={!bothSynced}
-          title={bothSynced ? 'Return both videos to their sync points' : 'Set sync points on both players first'}
+          title={bothSynced
+            ? 'Return to sync points (Enter)'
+            : 'Set sync points on both players first (S · K)'}
         >
           ⌖ Sync
         </button>
@@ -137,6 +141,7 @@ export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Prop
           value={globalSpeed}
           onChange={e => onSpeedChange(parseFloat(e.target.value))}
           aria-label="Set speed for both players"
+          title="Playback speed · [ ] to change · \ to reset to 1×"
         >
           {SPEED_OPTIONS.map(s => (
             <option key={s} value={s}>{s === 1 ? '1×' : `${s}×`}</option>
@@ -156,7 +161,7 @@ export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Prop
                   <span
                     className="drift-badge"
                     style={{ visibility: isDrifted ? 'visible' : 'hidden' }}
-                    title="Players are out of sync — click ⌖ Sync to realign"
+                    title="Out of sync — click Sync or press Enter to realign"
                   >
                     ⚡ {formatDrift(drift)} drift
                   </span>
@@ -175,6 +180,7 @@ export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Prop
                 className={isDrifted ? 'scrubber--drifted' : ''}
                 style={{ '--pct': syncScrubPct } as React.CSSProperties}
                 aria-label="Synchronized scrubber"
+                title="Scrub both · ← → (≈ 1 frame) · Shift + ← → (= ½s)"
               />
             </div>
             {!isCollapsed && (

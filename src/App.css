@@ -81,7 +81,38 @@
 /* ── Controls section ────────────────────────────── */
 .controls-section { grid-area: controls; }
 
-/* ── Footer ──────────────────────────────────────── */
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: clamp(6px, 0.8dvh, 12px);
+  flex-shrink: 0;
+}
+
+/* ── Keyboard help trigger (desktop only) ──────────── */
+.app-header__help-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(22px, 3.2dvh, 38px);
+  height: clamp(22px, 3.2dvh, 38px);
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: clamp(10px, 1.2dvh, 16px);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, box-shadow 0.15s;
+  flex-shrink: 0;
+}
+.app-header__help-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+}
+/* Hide on touch/mobile — keyboard shortcuts don't apply there */
+@media (hover: none) {
+  .app-header__help-btn { display: none; }
+}
 .app-footer {
   border-top: 1px solid var(--border-subtle);
   padding: 14px 4px;

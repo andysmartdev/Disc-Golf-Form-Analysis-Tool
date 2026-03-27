@@ -1,0 +1,169 @@
+/* ── Backdrop ────────────────────────────────────── */
+.kh-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: kh-fade 0.15s ease;
+}
+@keyframes kh-fade { from { opacity: 0 } to { opacity: 1 } }
+
+/* ── Panel ───────────────────────────────────────── */
+.kh-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow), 0 0 80px rgba(0, 0, 0, 0.5);
+  max-width: 540px;
+  width: 100%;
+  max-height: 90dvh;
+  overflow-y: auto;
+  animation: kh-slide 0.18s ease;
+}
+@keyframes kh-slide {
+  from { transform: translateY(-10px); opacity: 0; }
+  to   { transform: none;              opacity: 1; }
+}
+
+/* ── Header ──────────────────────────────────────── */
+.kh-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: clamp(12px, 1.6dvh, 20px) clamp(14px, 2dvh, 24px);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.kh-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.kh-close {
+  width: clamp(24px, 2.6dvh, 32px);
+  height: clamp(24px, 2.6dvh, 32px);
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: var(--fs-xs);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, color 0.15s;
+}
+.kh-close:hover { border-color: var(--danger); color: var(--danger); }
+
+/* ── Body ────────────────────────────────────────── */
+.kh-body {
+  padding: clamp(14px, 1.6dvh, 20px) clamp(14px, 2dvh, 24px) clamp(16px, 2dvh, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Section labels ──────────────────────────────── */
+.kh-section-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.kh-section-label--a { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
+.kh-section-label--b { color: var(--accent2); border-color: color-mix(in srgb, var(--accent2) 30%, transparent); }
+
+.kh-hand {
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 0.7;
+}
+
+/* ── Two-column player layout ────────────────────── */
+.kh-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 480px) {
+  .kh-columns { grid-template-columns: 1fr; }
+}
+
+/* ── Shortcut rows ───────────────────────────────── */
+.kh-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.kh-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+.kh-combo {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.kh-plus {
+  color: var(--text-dim);
+  font-size: var(--fs-2xs);
+}
+
+/* ── Key badge (like a physical key) ────────────────── */
+.kh-key {
+  display: inline-block;
+  font-family: 'Space Mono', 'Courier New', monospace;
+  font-style: normal;
+  font-size: var(--fs-2xs);
+  line-height: 1.4;
+  padding: 2px 6px;
+  min-width: 22px;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-bottom: 2.5px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--text-muted);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Tip footer ──────────────────────────────────── */
+.kh-tip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: var(--fs-2xs);
+  color: var(--text-muted);
+  padding: 8px 12px;
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  border-radius: 8px;
+  line-height: 1.5;
+}

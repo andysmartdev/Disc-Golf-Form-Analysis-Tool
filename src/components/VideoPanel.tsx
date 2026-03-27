@@ -149,6 +149,9 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded }: Props) {
               onChange={handleScrub}
               disabled={!src}
               aria-label={`${label} timeline`}
+              title={side === 'left'
+                ? 'Scrub · A ← · D → · hold Shift for 1s steps'
+                : 'Scrub · J ← · L → · hold Shift for 1s steps'}
             />
             {syncMarkerPercent !== null && (
               <div
@@ -171,6 +174,9 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded }: Props) {
             onClick={togglePlay}
             disabled={!src}
             aria-label={isPlaying ? 'Pause' : 'Play'}
+            title={isPlaying
+              ? `Pause (${side === 'left' ? 'W' : 'I'})`
+              : `Play (${side === 'left' ? 'W' : 'I'})`}
           >
             {isPlaying ? '⏸' : '▶'}
           </button>
@@ -181,6 +187,7 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded }: Props) {
             onClick={() => seek(0)}
             disabled={!src}
             aria-label="Rewind to start"
+            title={`Rewind to start (${side === 'left' ? 'Q' : 'U'})`}
           >
             ⏮
           </button>
@@ -191,13 +198,13 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded }: Props) {
             onClick={() => syncPoint !== null && seek(syncPoint)}
             disabled={!src || syncPoint === null}
             aria-label="Jump to sync point"
-            title="Jump to sync point"
+            title={`Jump to sync point (${side === 'left' ? 'E' : 'O'})`}
           >
             ⊙
           </button>
 
           {/* Speed label (controlled globally) */}
-          <span className="speed-label" title="Speed is controlled globally">
+          <span className="speed-label" title="Global speed · [ ] to change · \ to reset to 1×">
             {globalSpeed}×
           </span>
 
@@ -207,7 +214,9 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded }: Props) {
             style={{ marginLeft: 'auto' }}
             onClick={setSyncPoint}
             disabled={!bothLoaded}
-            title={bothLoaded ? 'Mark current position as sync point' : 'Load a video into both players first'}
+          title={bothLoaded
+              ? `Set sync point here (${side === 'left' ? 'S' : 'K'})`
+              : 'Load both players first'}
           >
             ⌖ Set Sync
           </button>
@@ -215,7 +224,7 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded }: Props) {
           {/* Clear sync */}
           {syncPoint !== null && (
             <>
-              <div className="sync-badge">
+              <div className="sync-badge" title={`Sync point: ${formatTime(syncPoint)}`}>
                 <span>⌖</span>
                 <span className="sync-badge__time">{formatTime(syncPoint)}</span>
               </div>
@@ -223,7 +232,7 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded }: Props) {
                 className="btn btn--icon btn--danger"
                 onClick={clearSyncPoint}
                 aria-label="Clear sync point"
-                title="Clear sync point"
+                title={`Clear sync point (Shift+${side === 'left' ? 'S' : 'K'})`}
               >
                 ✕
               </button>

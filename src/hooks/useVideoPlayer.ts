@@ -68,6 +68,8 @@ export function useVideoPlayer(): VideoPlayerControls {
     setCurrentTime(0);
     setDuration(0);
     setSyncPointState(null);
+    setPlaybackRateState(1);
+    if (videoRef.current) videoRef.current.playbackRate = 1;
   }, []);
 
   const play = useCallback(() => { videoRef.current?.play(); }, []);

@@ -52,6 +52,28 @@
   aspect-ratio: 16 / 9;
   background: #000;
   overflow: hidden;
+  transition: outline 0.1s;
+}
+
+/* Drag-over highlight */
+.video-panel__viewport--drag {
+  outline: 3px solid var(--accent);
+  outline-offset: -3px;
+}
+.video-panel__viewport--drag::after {
+  content: 'Drop video here';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: rgba(0, 200, 255, 0.08);
+  pointer-events: none;
+  letter-spacing: 0.05em;
 }
 
 .video-panel__video {

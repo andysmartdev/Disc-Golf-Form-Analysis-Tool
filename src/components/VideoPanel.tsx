@@ -1,4 +1,4 @@
-import { useRef, useId } from 'react';
+import { useRef, useId, useState, useCallback } from 'react';
 import type { VideoPlayerControls } from '../hooks/useVideoPlayer';
 import type { Side } from '../types';
 import './VideoPanel.css';
@@ -21,6 +21,8 @@ interface Props {
 export function VideoPanel({ side, player }: Props) {
   const fileInputId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragCounter = useRef(0);
 
   const {
     videoRef, src, fileName, isPlaying, currentTime, duration,
@@ -37,6 +39,38 @@ export function VideoPanel({ side, player }: Props) {
   const handleScrub = (e: React.ChangeEvent<HTMLInputElement>) => {
     seek(parseFloat(e.target.value));
   };
+
+  // dragCounter tracks enter/leave across child elements to avoid flicker
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current++;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current--;
+    if (dragCounter.current === 0) setIsDragging(false);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'copy';
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    dragCounter.current = 0;
+    const file = Array.from(e.dataTransfer.files).find(f => f.type.startsWith('video/'));
+    if (file) loadFile(file);
+  }, [loadFile]);
 
   const syncMarkerPercent = syncPoint !== null && duration > 0
     ? (syncPoint / duration) * 100
@@ -69,7 +103,13 @@ export function VideoPanel({ side, player }: Props) {
       </div>
 
       {/* Viewport */}
-      <div className="video-panel__viewport">
+      <div
+        className={`video-panel__viewport${isDragging ? ' video-panel__viewport--drag' : ''}`}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
         {src ? (
           <video
             ref={videoRef}

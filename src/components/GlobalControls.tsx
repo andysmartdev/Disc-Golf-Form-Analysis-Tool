@@ -82,7 +82,7 @@ export function GlobalControls({ left, right }: Props) {
             onClick={pauseBoth}
             disabled={!bothLoaded}
           >
-            ⏸ Pause Both
+            ⏸ Pause
           </button>
         ) : (
           <button
@@ -90,7 +90,7 @@ export function GlobalControls({ left, right }: Props) {
             onClick={playBoth}
             disabled={!bothLoaded}
           >
-            ▶ Play Both
+            ▶ Play
           </button>
         )}
 

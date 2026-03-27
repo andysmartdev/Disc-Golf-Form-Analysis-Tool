@@ -69,13 +69,12 @@ export default function App() {
 
       {/* ── Main content ── */}
       <main className="app-main">
-        {/* Video players */}
-        <section className="players-grid" aria-label="Video players">
+        {/* Player A */}
+        <div className="player-slot player-slot--left">
           <VideoPanel side="left" player={leftPlayerWithReset} globalSpeed={globalSpeed} bothLoaded={!!leftPlayer.src && !!rightPlayer.src} />
-          <VideoPanel side="right" player={rightPlayerWithReset} globalSpeed={globalSpeed} bothLoaded={!!leftPlayer.src && !!rightPlayer.src} />
-        </section>
+        </div>
 
-        {/* Global controls */}
+        {/* Global controls — sits between players on mobile */}
         <section className="controls-section" aria-label="Global controls">
           <GlobalControls
             left={leftPlayerWithReset}
@@ -84,6 +83,11 @@ export default function App() {
             onSpeedChange={handleGlobalSpeed}
           />
         </section>
+
+        {/* Player B */}
+        <div className="player-slot player-slot--right">
+          <VideoPanel side="right" player={rightPlayerWithReset} globalSpeed={globalSpeed} bothLoaded={!!leftPlayer.src && !!rightPlayer.src} />
+        </div>
       </main>
 
       {/* ── Footer ── */}

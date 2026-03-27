@@ -10,6 +10,11 @@
   box-shadow: var(--shadow);
 }
 
+.global-controls--collapsed {
+  gap: 10px;
+  padding: 14px 20px;
+}
+
 .global-controls__title {
   font-family: 'Space Grotesk', sans-serif;
   font-size: var(--fs-xs);
@@ -27,6 +32,27 @@
   flex: 1;
   height: 1px;
   background: var(--border-subtle);
+}
+
+/* ── Collapse toggle button ──────────────────────── */
+.global-controls__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: clamp(20px, 2dvh, 26px);
+  height: clamp(20px, 2dvh, 26px);
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: var(--fs-2xs);
+  padding: 0;
+  transition: border-color 0.15s, color 0.15s;
+}
+.global-controls__toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* ── Row layouts ─────────────────────────────────── */

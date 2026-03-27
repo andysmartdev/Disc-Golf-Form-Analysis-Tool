@@ -63,24 +63,23 @@
 /* ── Main ────────────────────────────────────────── */
 .app-main {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding-bottom: 24px;
-}
-
-/* ── Players grid ────────────────────────────────── */
-.players-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "player-left  player-right"
+    "controls     controls";
   gap: 16px;
-  width: 100%;
+  padding-bottom: 24px;
+  align-content: start;
 }
 
+/* ── Player slots ────────────────────────────────── */
+.player-slot { min-width: 0; }
+.player-slot--left  { grid-area: player-left; }
+.player-slot--right { grid-area: player-right; }
+
 /* ── Controls section ────────────────────────────── */
-.controls-section {
-  width: 100%;
-}
+.controls-section { grid-area: controls; }
 
 /* ── Footer ──────────────────────────────────────── */
 .app-footer {
@@ -96,7 +95,15 @@
 @media (max-width: 900px) {
   .app { padding: 0 12px; }
   .app-header { margin-bottom: 16px; }
-  .players-grid { grid-template-columns: 1fr; gap: 12px; }
+  /* Single column: A → controls → B */
+  .app-main {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "player-left"
+      "controls"
+      "player-right";
+    gap: 12px;
+  }
 }
 
 /* ── Responsive: phone ───────────────────────────── */
@@ -104,6 +111,6 @@
   .app { padding: 0 8px; }
   .app-header { margin-bottom: 12px; }
   .app-header__sub { display: none; }
-  .players-grid { gap: 10px; }
-  .global-controls { padding: 14px 14px; }
+  .app-main { gap: 10px; }
+  .global-controls { padding: 14px; }
 }

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import type { VideoPlayerControls } from '../hooks/useVideoPlayer';
 import './GlobalControls.css';
 
@@ -27,6 +27,7 @@ interface Props {
 export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Props) {
   const bothLoaded = !!left.src && !!right.src;
   const bothSynced = left.syncPoint !== null && right.syncPoint !== null;
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   // How much video is available after both sync points (shortest window wins).
   const syncDuration = bothSynced
@@ -82,12 +83,24 @@ export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Prop
   }, [left, right, bothSynced]);
 
   return (
-    <div className="global-controls">
-      <div className="global-controls__title">Sync &amp; Global Controls</div>
+    <div className={`global-controls${isCollapsed ? ' global-controls--collapsed' : ''}`}>
 
-      {/* Play both row */}
+      {/* Title bar — always visible; contains the collapse toggle */}
+      <div className="global-controls__title">
+        {!isCollapsed && <span>Sync &amp; Global Controls</span>}
+        <button
+          className="global-controls__toggle"
+          onClick={() => setIsCollapsed(c => !c)}
+          aria-label={isCollapsed ? 'Expand controls' : 'Collapse controls'}
+          title={isCollapsed ? 'Expand controls' : 'Collapse controls'}
+        >
+          {isCollapsed ? '▼' : '▲'}
+        </button>
+      </div>
+
+      {/* Play both row — always visible */}
       <div className="global-controls__row">
-        <span className="global-controls__section-label">Both</span>
+        {!isCollapsed && <span className="global-controls__section-label">Both</span>}
 
         {eitherPlaying ? (
           <button
@@ -116,8 +129,9 @@ export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Prop
           ⌖ Sync
         </button>
 
-        {/* Global speed */}
-        <span className="global-controls__section-label" style={{ marginLeft: '8px' }}>Speed</span>
+        {!isCollapsed && (
+          <span className="global-controls__section-label" style={{ marginLeft: '8px' }}>Speed</span>
+        )}
         <select
           className="speed-select"
           value={globalSpeed}
@@ -130,24 +144,26 @@ export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Prop
         </select>
       </div>
 
-      {/* Sync scrubber */}
+      {/* Sync scrubber — visible when synced; simplified when collapsed */}
       {bothSynced && (
         <>
-          <div className="global-controls__divider" />
+          {!isCollapsed && <div className="global-controls__divider" />}
           <div className="sync-scrubber">
-            <div className="sync-scrubber__label">
-              <span>⌖ Synchronized Scrub</span>
-              <div className="sync-scrubber__label-right">
-                <span
-                  className="drift-badge"
-                  style={{ visibility: isDrifted ? 'visible' : 'hidden' }}
-                  title="Players are out of sync — click ⌖ Sync to realign"
-                >
-                  ⚡ {formatDrift(drift)} drift
-                </span>
-                <span>+{formatTime(syncOffset)}</span>
+            {!isCollapsed && (
+              <div className="sync-scrubber__label">
+                <span>⌖ Synchronized Scrub</span>
+                <div className="sync-scrubber__label-right">
+                  <span
+                    className="drift-badge"
+                    style={{ visibility: isDrifted ? 'visible' : 'hidden' }}
+                    title="Players are out of sync — click ⌖ Sync to realign"
+                  >
+                    ⚡ {formatDrift(drift)} drift
+                  </span>
+                  <span>+{formatTime(syncOffset)}</span>
+                </div>
               </div>
-            </div>
+            )}
             <div className="sync-scrubber__range-wrap">
               <input
                 type="range"
@@ -161,51 +177,57 @@ export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Prop
                 aria-label="Synchronized scrubber"
               />
             </div>
-            <div className="sync-scrubber__time-display">
-              <span>A sync: {formatTime(left.syncPoint!)}</span>
-              <span className="sync-scrubber__center-label">← scrub both →</span>
-              <span>B sync: {formatTime(right.syncPoint!)}</span>
-            </div>
+            {!isCollapsed && (
+              <div className="sync-scrubber__time-display">
+                <span>A sync: {formatTime(left.syncPoint!)}</span>
+                <span className="sync-scrubber__center-label">← scrub both →</span>
+                <span>B sync: {formatTime(right.syncPoint!)}</span>
+              </div>
+            )}
           </div>
         </>
       )}
 
-      {/* Status */}
-      <div className="global-controls__divider" />
-      <div className="global-controls__status">
-        <span className={`status-chip ${
-          left.syncPoint !== null ? 'status-chip--ok' :
-          left.src ? 'status-chip--warn' : 'status-chip--dim'
-        }`}>
-          A {left.syncPoint !== null ? '✓' : '✗'}
-        </span>
-        <span className={`status-chip ${
-          right.syncPoint !== null ? 'status-chip--ok' :
-          right.src ? 'status-chip--warn' : 'status-chip--dim'
-        }`}>
-          B {right.syncPoint !== null ? '✓' : '✗'}
-        </span>
-        {bothSynced && !isDrifted && (
-          <span className="status-chip status-chip--info">⌖ In Sync</span>
-        )}
-        {bothSynced && isDrifted && (
-          <span className="status-chip status-chip--warn">⚡ Drifted</span>
-        )}
-        {!bothLoaded && (
-          <span style={{ color: 'var(--text-dim)', fontSize: 'var(--fs-xs)' }}>
-            Load videos into both players to get started
-          </span>
-        )}
-        {bothLoaded && !bothSynced && (
-          <span style={{ color: 'var(--text-dim)', fontSize: 'var(--fs-xs)' }}>
-            {left.syncPoint === null && right.syncPoint === null
-              ? 'Set sync points on both players to enable synchronized scrubbing'
-              : left.syncPoint === null
-              ? 'Set a sync point on Player A to enable synchronized scrubbing'
-              : 'Set a sync point on Player B to enable synchronized scrubbing'}
-          </span>
-        )}
-      </div>
+      {/* Status + hints — expanded only */}
+      {!isCollapsed && (
+        <>
+          <div className="global-controls__divider" />
+          <div className="global-controls__status">
+            <span className={`status-chip ${
+              left.syncPoint !== null ? 'status-chip--ok' :
+              left.src ? 'status-chip--warn' : 'status-chip--dim'
+            }`}>
+              A {left.syncPoint !== null ? '✓' : '✗'}
+            </span>
+            <span className={`status-chip ${
+              right.syncPoint !== null ? 'status-chip--ok' :
+              right.src ? 'status-chip--warn' : 'status-chip--dim'
+            }`}>
+              B {right.syncPoint !== null ? '✓' : '✗'}
+            </span>
+            {bothSynced && !isDrifted && (
+              <span className="status-chip status-chip--info">⌖ In Sync</span>
+            )}
+            {bothSynced && isDrifted && (
+              <span className="status-chip status-chip--warn">⚡ Drifted</span>
+            )}
+            {!bothLoaded && (
+              <span style={{ color: 'var(--text-dim)', fontSize: 'var(--fs-xs)' }}>
+                Load videos into both players to get started
+              </span>
+            )}
+            {bothLoaded && !bothSynced && (
+              <span style={{ color: 'var(--text-dim)', fontSize: 'var(--fs-xs)' }}>
+                {left.syncPoint === null && right.syncPoint === null
+                  ? 'Set sync points on both players to enable synchronized scrubbing'
+                  : left.syncPoint === null
+                  ? 'Set a sync point on Player A to enable synchronized scrubbing'
+                  : 'Set a sync point on Player B to enable synchronized scrubbing'}
+              </span>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

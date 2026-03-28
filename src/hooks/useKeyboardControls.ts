@@ -12,6 +12,8 @@ export interface KeyboardControlsOptions {
   onSync: () => void;
   onToggleHelp: () => void;
   helpOpen: boolean;
+  drawingLeft?:  { undo: () => void; redo: () => void; canUndo: boolean; canRedo: boolean };
+  drawingRight?: { undo: () => void; redo: () => void; canUndo: boolean; canRedo: boolean };
 }
 
 /**
@@ -31,7 +33,7 @@ export function useKeyboardControls(opts: KeyboardControlsOptions) {
 
   useEffect(() => {
     const handle = (e: KeyboardEvent) => {
-      const { left, right, globalSpeed, onSpeedChange, onSync, onToggleHelp, helpOpen } = r.current;
+      const { left, right, globalSpeed, onSpeedChange, onSync, onToggleHelp, helpOpen, drawingLeft, drawingRight } = r.current;
 
       // Never hijack typing in text fields
       const tgt = e.target as HTMLElement;
@@ -88,7 +90,7 @@ export function useKeyboardControls(opts: KeyboardControlsOptions) {
           if (e.shiftKey) { e.preventDefault(); onToggleHelp(); }
           break;
 
-        // ── Player A  (Q W E  ·  A S D) ────────────────────────────────────
+        // ── Player A  (Q W E · A S D · Z undo/redo drawing) ───────────────────
         case 'KeyQ': e.preventDefault(); if (left.src) left.seek(0);                                         break;
         case 'KeyW': e.preventDefault(); if (left.src) (left.isPlaying ? left.pause() : left.play());        break;
         case 'KeyE': e.preventDefault(); if (left.syncPoint !== null) left.seek(left.syncPoint);             break;
@@ -99,8 +101,13 @@ export function useKeyboardControls(opts: KeyboardControlsOptions) {
           else            { if (bothLoaded) left.setSyncPoint(); }
           break;
         case 'KeyD': e.preventDefault(); if (left.src) seekL(+step);                                         break;
+        case 'KeyZ':
+          e.preventDefault();
+          if (e.shiftKey) { if (drawingLeft?.canRedo)  drawingLeft.redo();  }
+          else            { if (drawingLeft?.canUndo)  drawingLeft.undo();  }
+          break;
 
-        // ── Player B  (U I O  ·  J K L) ────────────────────────────────────
+        // ── Player B  (U I O · J K L · N undo/redo drawing) ───────────────────
         case 'KeyU': e.preventDefault(); if (right.src) right.seek(0);                                       break;
         case 'KeyI': e.preventDefault(); if (right.src) (right.isPlaying ? right.pause() : right.play());    break;
         case 'KeyO': e.preventDefault(); if (right.syncPoint !== null) right.seek(right.syncPoint);          break;
@@ -111,6 +118,11 @@ export function useKeyboardControls(opts: KeyboardControlsOptions) {
           else            { if (bothLoaded) right.setSyncPoint(); }
           break;
         case 'KeyL': e.preventDefault(); if (right.src) seekR(+step);                                        break;
+        case 'KeyN':
+          e.preventDefault();
+          if (e.shiftKey) { if (drawingRight?.canRedo) drawingRight.redo(); }
+          else            { if (drawingRight?.canUndo) drawingRight.undo(); }
+          break;
 
         // ── Global scrubber (arrow keys — always intercept, even over range inputs) ──
         case 'ArrowLeft':

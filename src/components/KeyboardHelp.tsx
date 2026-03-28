@@ -78,6 +78,11 @@ export function KeyboardHelp({ isOpen, onClose }: Props) {
                   <span className="kh-combo"><Kbd>A</Kbd><Kbd>D</Kbd></span>
                   <span>Seek ←&nbsp;/&nbsp;→ (0.1 s)</span>
                 </div>
+                <div className="kh-row"><Kbd>Z</Kbd><span>Undo drawing stroke</span></div>
+                <div className="kh-row">
+                  <span className="kh-combo"><Kbd>Shift</Kbd><span className="kh-plus">+</span><Kbd>Z</Kbd></span>
+                  <span>Redo drawing stroke</span>
+                </div>
               </div>
             </div>
 
@@ -96,6 +101,11 @@ export function KeyboardHelp({ isOpen, onClose }: Props) {
                 <div className="kh-row">
                   <span className="kh-combo"><Kbd>J</Kbd><Kbd>L</Kbd></span>
                   <span>Seek ←&nbsp;/&nbsp;→ (0.1 s)</span>
+                </div>
+                <div className="kh-row"><Kbd>N</Kbd><span>Undo drawing stroke</span></div>
+                <div className="kh-row">
+                  <span className="kh-combo"><Kbd>Shift</Kbd><span className="kh-plus">+</span><Kbd>N</Kbd></span>
+                  <span>Redo drawing stroke</span>
                 </div>
               </div>
             </div>

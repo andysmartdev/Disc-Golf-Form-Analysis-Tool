@@ -1,8 +1,12 @@
 import { useRef, useId, useState, useCallback, useEffect } from 'react';
 import type { VideoPlayerControls } from '../hooks/useVideoPlayer';
 import { useVideoTransform } from '../hooks/useVideoTransform';
+import type { UseDrawingReturn } from '../hooks/useDrawing';
 import type { Side } from '../types';
+import { DrawingCanvasLayer } from './DrawingCanvasLayer';
+import { DrawingToolbar } from './DrawingToolbar';
 import './VideoPanel.css';
+import './Drawing.css';
 
 function formatTime(seconds: number): string {
   if (!isFinite(seconds) || isNaN(seconds)) return '0:00.00';
@@ -17,9 +21,11 @@ interface Props {
   player: VideoPlayerControls;
   globalSpeed: number;
   bothLoaded: boolean;
+  drawing: UseDrawingReturn;
+  onClearBoth: () => void;
 }
 
-export function VideoPanel({ side, player, globalSpeed, bothLoaded }: Props) {
+export function VideoPanel({ side, player, globalSpeed, bothLoaded, drawing, onClearBoth }: Props) {
   const fileInputId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -37,6 +43,13 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded }: Props) {
 
   // Reset zoom whenever a new video is loaded
   useEffect(() => { resetZoom(); }, [src, resetZoom]);
+
+  // ── Drawing overlay ───────────────────────────────────────────────────────
+  // drawing is now a prop (state lifted to App.tsx for keyboard access)
+
+  // When drawing mode is enabled, disable zoom interactions (and vice versa)
+  // canDraw: drawing mode is on, video is loaded, and we're not playing
+  const canDraw = drawing.enabled && !isPlaying && !!src;
 
   // ── File input / drag-and-drop ────────────────────────────────────────────
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,6 +116,17 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded }: Props) {
           className="file-input-hidden"
           onChange={handleFileChange}
         />
+        {/* Draw mode toggle */}
+        {src && (
+          <button
+            className={`btn--draw${drawing.enabled ? ' btn--draw-active' : ''}`}
+            onClick={() => drawing.setEnabled(!drawing.enabled)}
+            title={drawing.enabled ? 'Exit draw mode' : 'Draw on video (annotate)'}
+            aria-pressed={drawing.enabled}
+          >
+            ✎
+          </button>
+        )}
         <button
           className="btn btn--load"
           onClick={() => fileInputRef.current?.click()}
@@ -115,8 +139,8 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded }: Props) {
       <div
         ref={containerRef}
         className={`video-panel__viewport${isDragging ? ' video-panel__viewport--drag' : ''}`}
-        style={{ cursor: isDragging ? undefined : zoomCursor }}
-        onMouseDown={onZoomMouseDown}
+        style={{ cursor: isDragging ? undefined : (canDraw ? drawing.cursor : zoomCursor) }}
+        onMouseDown={canDraw ? undefined : onZoomMouseDown}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
@@ -124,17 +148,29 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded }: Props) {
       >
         {src ? (
           <>
-            <video
-              ref={videoRef}
-              src={src}
-              className="video-panel__video"
-              playsInline
-              preload="metadata"
-              style={zoom.scale > 1 ? {
+            {/* Extract zoom style so both video and canvas share the same transform */}
+            {(() => {
+              const zoomStyle: React.CSSProperties | undefined = zoom.scale > 1 ? {
                 transform: `translate(${zoom.tx}px, ${zoom.ty}px) scale(${zoom.scale})`,
                 transformOrigin: 'center center',
-              } : undefined}
-            />
+              } : undefined;
+              return (
+                <>
+                  <video
+                    ref={videoRef}
+                    src={src}
+                    className="video-panel__video"
+                    playsInline
+                    preload="metadata"
+                    style={zoomStyle}
+                  />
+                  <DrawingCanvasLayer
+                    drawing={drawing}
+                    canDraw={canDraw}
+                  />
+                </>
+              );
+            })()}
             {zoom.scale > 1 && (
               <button
                 className="video-panel__zoom-badge"
@@ -161,6 +197,11 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded }: Props) {
           </div>
         )}
       </div>
+
+      {/* Drawing toolbar — shown when draw mode is active */}
+      {drawing.enabled && src && (
+        <DrawingToolbar drawing={drawing} side={side} onClearBoth={onClearBoth} />
+      )}
 
       {/* Controls */}
       <div className="video-panel__controls">

@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { useVideoPlayer } from './hooks/useVideoPlayer';
 import { useTheme } from './hooks/useTheme';
 import { useKeyboardControls } from './hooks/useKeyboardControls';
+import { useDrawing } from './hooks/useDrawing';
 import { VideoPanel } from './components/VideoPanel';
 import { GlobalControls } from './components/GlobalControls';
 import { ThemeToggle } from './components/ThemeToggle';
@@ -10,10 +11,19 @@ import './App.css';
 
 export default function App() {
   const { theme, toggleTheme } = useTheme();
-  const leftPlayer = useVideoPlayer();
+  const leftPlayer  = useVideoPlayer();
   const rightPlayer = useVideoPlayer();
   const [globalSpeed, setGlobalSpeed] = useState(1);
   const [showHelp, setShowHelp] = useState(false);
+
+  // Drawing state lives here so keyboard controls can access undo/redo
+  const drawingLeft  = useDrawing(leftPlayer.isPlaying);
+  const drawingRight = useDrawing(rightPlayer.isPlaying);
+
+  const handleClearBothDrawings = useCallback(() => {
+    drawingLeft.clear();
+    drawingRight.clear();
+  }, [drawingLeft, drawingRight]);
 
   const handleGlobalSpeed = useCallback((rate: number) => {
     setGlobalSpeed(rate);
@@ -74,6 +84,8 @@ export default function App() {
     onSync: handleKeyboardSync,
     onToggleHelp: () => setShowHelp(h => !h),
     helpOpen: showHelp,
+    drawingLeft:  { undo: drawingLeft.undo,  redo: drawingLeft.redo,  canUndo: drawingLeft.canUndo,  canRedo: drawingLeft.canRedo  },
+    drawingRight: { undo: drawingRight.undo, redo: drawingRight.redo, canUndo: drawingRight.canUndo, canRedo: drawingRight.canRedo },
   });
 
   return (
@@ -110,7 +122,8 @@ export default function App() {
       <main className="app-main">
         {/* Player A */}
         <div className="player-slot player-slot--left">
-          <VideoPanel side="left" player={leftPlayerWithReset} globalSpeed={globalSpeed} bothLoaded={!!leftPlayer.src && !!rightPlayer.src} />
+          <VideoPanel side="left" player={leftPlayerWithReset} globalSpeed={globalSpeed} bothLoaded={!!leftPlayer.src && !!rightPlayer.src}
+            drawing={drawingLeft} onClearBoth={handleClearBothDrawings} />
         </div>
 
         {/* Global controls — sits between players on mobile */}
@@ -125,7 +138,8 @@ export default function App() {
 
         {/* Player B */}
         <div className="player-slot player-slot--right">
-          <VideoPanel side="right" player={rightPlayerWithReset} globalSpeed={globalSpeed} bothLoaded={!!leftPlayer.src && !!rightPlayer.src} />
+          <VideoPanel side="right" player={rightPlayerWithReset} globalSpeed={globalSpeed} bothLoaded={!!leftPlayer.src && !!rightPlayer.src}
+            drawing={drawingRight} onClearBoth={handleClearBothDrawings} />
         </div>
       </main>
 

@@ -18,7 +18,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: clamp(4px, 0.5dvh, 8px);
-  padding: clamp(4px, 0.5dvh, 8px) clamp(8px, 1dvh, 14px);
+  padding: clamp(8px, 1.5dvh, 16px) clamp(8px, 1dvh, 14px);
   background: var(--surface);
   border-bottom: 1px solid var(--border-subtle);
 }

@@ -203,8 +203,8 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded, drawing, onC
         <DrawingToolbar drawing={drawing} side={side} onClearBoth={onClearBoth} />
       )}
 
-      {/* Controls */}
-      <div className="video-panel__controls">
+      {/* Controls — hidden while draw mode is active to keep the panel height stable */}
+      {!drawing.enabled && <div className="video-panel__controls">
         {/* Scrubber */}
         <div className="scrubber-row">
           <div className="scrubber-track">
@@ -307,7 +307,7 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded, drawing, onC
             </>
           )}
         </div>
-      </div>
+      </div>}
     </div>
   );
 }

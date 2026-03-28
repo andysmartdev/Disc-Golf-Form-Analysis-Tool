@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useReducer, useRef, useCallback, useEffect } from 'react';
 import type { RefObject } from 'react';
 
 export type DrawTool = 'pencil' | 'line' | 'arrow' | 'circle' | 'rect' | 'eraser';
@@ -128,6 +128,37 @@ const CURSOR_MAP: Record<DrawTool, string> = {
   circle: 'crosshair', rect: 'crosshair',  eraser: 'cell',
 };
 
+// ── History reducer — single atomic state for strokes + redo future ──────────
+
+interface HistoryState { strokes: DrawStroke[]; future: DrawStroke[] }
+type HistoryAction =
+  | { type: 'ADD';   stroke: DrawStroke }
+  | { type: 'UNDO' }
+  | { type: 'REDO' }
+  | { type: 'CLEAR' };
+
+function historyReducer(state: HistoryState, action: HistoryAction): HistoryState {
+  switch (action.type) {
+    case 'ADD':
+      // New stroke always clears the redo branch
+      return { strokes: [...state.strokes, action.stroke], future: [] };
+    case 'UNDO': {
+      if (!state.strokes.length) return state;
+      const last = state.strokes[state.strokes.length - 1];
+      return { strokes: state.strokes.slice(0, -1), future: [...state.future, last] };
+    }
+    case 'REDO': {
+      if (!state.future.length) return state;
+      const next = state.future[state.future.length - 1];
+      return { strokes: [...state.strokes, next], future: state.future.slice(0, -1) };
+    }
+    case 'CLEAR':
+      return { strokes: [], future: [] };
+    default:
+      return state;
+  }
+}
+
 // ── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useDrawing(isPlaying: boolean): UseDrawingReturn {
@@ -135,51 +166,36 @@ export function useDrawing(isPlaying: boolean): UseDrawingReturn {
   const [tool,    setToolState]    = useState<DrawTool>('pencil');
   const [color,   setColor]        = useState(PRESET_COLORS[0]);
   const [strokeWidth, setStrokeWidth] = useState(PRESET_WIDTHS[1]);
-  const [strokes, setStrokes]      = useState<DrawStroke[]>([]);
-  const [future,  setFuture]       = useState<DrawStroke[]>([]); // redo stack
 
-  const committedRef = useRef<HTMLCanvasElement | null>(null);
-  const previewRef   = useRef<HTMLCanvasElement | null>(null);
-  const isDrawing    = useRef(false);
+  // Single reducer owns both strokes + redo future — no nested setState
+  const [history, dispatch] = useReducer(historyReducer, { strokes: [], future: [] });
+
+  const committedRef  = useRef<HTMLCanvasElement | null>(null);
+  const previewRef    = useRef<HTMLCanvasElement | null>(null);
+  const isDrawing     = useRef(false);
   const currentStroke = useRef<DrawStroke | null>(null);
 
-  // Stale-ref mirrors for synchronous handler access
+  // Stale-ref for tool/color/width (accessed synchronously inside mouse handlers)
   const sr = useRef({ tool, color, strokeWidth });
   useEffect(() => { sr.current = { tool, color, strokeWidth }; });
+
+  // strokesRef is kept in sync for DrawingCanvasLayer's ResizeObserver
   const strokesRef = useRef<DrawStroke[]>([]);
-  useEffect(() => { strokesRef.current = strokes; }, [strokes]);
-  const futureRef = useRef<DrawStroke[]>([]);
-  useEffect(() => { futureRef.current = future; }, [future]);
+
+  // Redraw committed canvas and sync ref whenever strokes change
+  useEffect(() => {
+    strokesRef.current = history.strokes;
+    if (committedRef.current) redrawAll(committedRef.current, history.strokes);
+  }, [history.strokes]);
 
   const setEnabled = useCallback((v: boolean) => setEnabledState(v), []);
   const setTool    = useCallback((t: DrawTool) => setToolState(t), []);
 
-  const undo = useCallback(() => {
-    setStrokes(prev => {
-      if (!prev.length) return prev;
-      const removed = prev[prev.length - 1];
-      const next = prev.slice(0, -1);
-      strokesRef.current = next;
-      setFuture(f => { const nf = [...f, removed]; futureRef.current = nf; return nf; });
-      if (committedRef.current) redrawAll(committedRef.current, next);
-      return next;
-    });
-  }, []);
-
-  const redo = useCallback(() => {
-    setFuture(prev => {
-      if (!prev.length) return prev;
-      const restored = prev[prev.length - 1];
-      const next = prev.slice(0, -1);
-      futureRef.current = next;
-      setStrokes(s => { const ns = [...s, restored]; strokesRef.current = ns; if (committedRef.current) redrawAll(committedRef.current, ns); return ns; });
-      return next;
-    });
-  }, []);
+  const undo  = useCallback(() => dispatch({ type: 'UNDO'  }), []);
+  const redo  = useCallback(() => dispatch({ type: 'REDO'  }), []);
 
   const clear = useCallback(() => {
-    setStrokes([]);   strokesRef.current = [];
-    setFuture([]);    futureRef.current  = [];
+    dispatch({ type: 'CLEAR' });
     isDrawing.current = false;
     currentStroke.current = null;
     for (const ref of [committedRef, previewRef]) {
@@ -226,14 +242,7 @@ export function useDrawing(isPlaying: boolean): UseDrawingReturn {
       const ctx = previewRef.current.getContext('2d')!;
       ctx.clearRect(0, 0, previewRef.current.width, previewRef.current.height);
     }
-    // Committing a new stroke clears the redo stack (new branch)
-    setFuture([]); futureRef.current = [];
-    setStrokes(prev => {
-      const next = [...prev, stroke];
-      strokesRef.current = next;
-      if (committedRef.current) redrawAll(committedRef.current, next);
-      return next;
-    });
+    dispatch({ type: 'ADD', stroke });
   }, []);
 
   // ── Synthetic event handlers ─────────────────────────────────────────────
@@ -270,10 +279,10 @@ export function useDrawing(isPlaying: boolean): UseDrawingReturn {
     tool, setTool,
     color, setColor,
     strokeWidth, setStrokeWidth,
-    canUndo: strokes.length > 0,
-    canRedo: future.length > 0,
+    canUndo: history.strokes.length > 0,
+    canRedo: history.future.length > 0,
     undo, redo, clear,
-    strokes,
+    strokes: history.strokes,
     committedRef, previewRef,
     onMouseDown, onMouseMove, onMouseUp, onMouseLeave,
     onTouchStart, onTouchMove, onTouchEnd,

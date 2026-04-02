@@ -11,6 +11,7 @@ export interface VideoPlayerControls {
   syncPoint: number | null;
   loadFile: (file: File) => void;
   play: () => Promise<void>;
+  playWithRetry: () => Promise<void>;
   pause: () => void;
   togglePlay: () => void;
   seek: (time: number) => void;
@@ -93,14 +94,38 @@ export function useVideoPlayer(): VideoPlayerControls {
     if (v) v.playbackRate = 1;
   }, []);
 
-  // play() returns a Promise so callers can sequence multiple plays.
-  // Always catch AbortError — on iOS Safari, calling play() on a second
-  // video can abort the first; returning the Promise lets the caller
-  // wait for the first video to confirm playing before starting the next.
+  // play() returns a Promise so callers can coordinate multi-video starts.
+  // The catch() swallows AbortError so the returned promise always resolves.
   const play = useCallback((): Promise<void> => {
     const v = videoRef.current;
     if (!v) return Promise.resolve();
     return v.play().catch(() => {});
+  }, []);
+
+  /**
+   * playWithRetry — for use when starting two videos simultaneously on iOS.
+   *
+   * iOS Safari may fire `pause` on the first video when the second video's
+   * play() call is processed, even though both are playsInline and triggered
+   * by the same user gesture. This retries once after a short delay if the
+   * video gets paused within 200ms of starting.
+   */
+  const playWithRetry = useCallback((): Promise<void> => {
+    const v = videoRef.current;
+    if (!v) return Promise.resolve();
+
+    return v.play().then(() => {
+      // Schedule a one-time check: if the video gets paused within 200ms
+      // (iOS abort), attempt a single retry play.
+      const retryTimer = setTimeout(() => {
+        if (v.paused && !v.ended) {
+          v.play().catch(() => {});
+        }
+      }, 200);
+      // If the video is still playing after 300ms, cancel the retry check.
+      const cancelTimer = setTimeout(() => clearTimeout(retryTimer), 300);
+      void cancelTimer; // TS unused-var suppression
+    }).catch(() => {});
   }, []);
 
   const pause = useCallback(() => {
@@ -156,6 +181,7 @@ export function useVideoPlayer(): VideoPlayerControls {
     syncPoint,
     loadFile,
     play,
+    playWithRetry,
     pause,
     togglePlay,
     seek,

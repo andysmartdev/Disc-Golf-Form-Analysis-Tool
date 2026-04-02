@@ -70,7 +70,7 @@ export default function App() {
     }
     if (wasPlaying) {
       setTimeout(() => {
-        const p1 = leftPlayer.play();
+        const p1 = leftPlayer.playWithRetry();
         const p2 = rightPlayer.play();
         Promise.all([p1, p2]).catch(() => {});
       }, 50);
@@ -177,11 +177,19 @@ export default function App() {
 
       {/* ── Footer ── */}
       <footer className="app-footer">
-        <span>DG Form Analyzer &nbsp;·  load videos, set sync points, compare &amp; analyze</span>
+        <span>DG Form Analyzer — load videos, set sync points, compare &amp; analyze</span>
+        {/* Mobile-only: hard reload because pull-to-refresh is intentionally disabled */}
+        <button
+          className="app-footer__new-session"
+          onClick={() => window.location.reload()}
+          title="Clear all loaded videos and start a fresh session"
+        >
+          &#8635;&nbsp;New Session
+        </button>
       </footer>
 
       {/* ── Keyboard help modal ── */}
-      <KeyboardHelp isOpen={showHelp} onClose={() => setShowHelp(false)} />
+      <span><KeyboardHelp isOpen={showHelp} onClose={() => setShowHelp(false)} />·  load videos, set sync points, compare &amp; analyze</span>
     </div>
   );
 }

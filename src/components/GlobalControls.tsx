@@ -53,11 +53,10 @@ export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Prop
   const eitherPlaying = left.isPlaying || right.isPlaying;
 
   const playBoth = useCallback(() => {
-    // Call both synchronously so iOS Safari sees them in the same user-gesture
-    // activation frame. Chaining via .then() can lose the gesture activation
-    // scope by the time the microtask fires. Capture both promises and suppress
-    // any rejections from the pair together.
-    const p1 = left.play();
+    // Both calls are synchronous and within the same user-gesture activation.
+    // playWithRetry detects if iOS aborts the first video when the second
+    // starts and automatically retries after 200ms.
+    const p1 = left.playWithRetry();
     const p2 = right.play();
     Promise.all([p1, p2]).catch(() => {});
   }, [left, right]);
@@ -74,7 +73,7 @@ export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Prop
     right.seek(right.syncPoint!);
     if (wasPlaying) {
       setTimeout(() => {
-        const p1 = left.play();
+        const p1 = left.playWithRetry();
         const p2 = right.play();
         Promise.all([p1, p2]).catch(() => {});
       }, 50);

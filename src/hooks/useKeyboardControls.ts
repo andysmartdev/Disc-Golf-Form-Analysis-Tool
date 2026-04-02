@@ -60,7 +60,7 @@ export function useKeyboardControls(opts: KeyboardControlsOptions) {
           if (left.isPlaying || right.isPlaying) {
             left.pause(); right.pause();
           } else {
-            const p1 = left.play();
+            const p1 = left.playWithRetry();
             const p2 = right.play();
             Promise.all([p1, p2]).catch(() => {});
           }

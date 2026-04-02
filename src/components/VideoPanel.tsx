@@ -139,7 +139,13 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded, drawing, onC
       <div
         ref={containerRef}
         className={`video-panel__viewport${isDragging ? ' video-panel__viewport--drag' : ''}`}
-        style={{ cursor: isDragging ? undefined : (canDraw ? drawing.cursor : zoomCursor) }}
+        style={{
+          cursor: isDragging ? undefined : (canDraw ? drawing.cursor : zoomCursor),
+          // Disable all native browser touch gestures on the viewport when a video
+          // is loaded — our JS handles zoom/pan (and drawing) via non-passive
+          // native event listeners, so the browser must not intercept these.
+          touchAction: src ? 'none' : undefined,
+        }}
         onMouseDown={canDraw ? undefined : onZoomMouseDown}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}

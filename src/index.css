@@ -64,7 +64,11 @@
 /* ── Reset ─────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { font-size: clamp(12px, 1.5dvh, 18px); }
+html {
+  font-size: clamp(12px, 1.5dvh, 18px);
+  /* Prevent iOS rubber-band bounce on the html element */
+  overscroll-behavior: none;
+}
 
 body {
   font-family: 'Inter', system-ui, sans-serif;
@@ -73,6 +77,11 @@ body {
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
   transition: background 0.25s ease, color 0.25s ease;
+  /* Prevent pull-to-refresh and elastic overscroll on mobile */
+  overscroll-behavior: none;
+  /* Prevent double-tap zoom on all UI controls; per-element touch-action
+     overrides this for video viewports and drawing canvases */
+  touch-action: manipulation;
 }
 
 /* ── Scrollbar ─────────────────────────────────────── */

@@ -36,13 +36,14 @@ export interface UseDrawingReturn {
   strokes: DrawStroke[];
   committedRef: RefObject<HTMLCanvasElement | null>;
   previewRef:   RefObject<HTMLCanvasElement | null>;
+  /** Raw coordinate handlers — used by DrawingCanvasLayer's non-passive native touch listeners */
+  startDraw:    (clientX: number, clientY: number) => void;
+  moveDraw:     (clientX: number, clientY: number) => void;
+  endDraw:      () => void;
   onMouseDown:  (e: React.MouseEvent<HTMLCanvasElement>)  => void;
   onMouseMove:  (e: React.MouseEvent<HTMLCanvasElement>)  => void;
   onMouseUp:    () => void;
   onMouseLeave: () => void;
-  onTouchStart: (e: React.TouchEvent<HTMLCanvasElement>) => void;
-  onTouchMove:  (e: React.TouchEvent<HTMLCanvasElement>) => void;
-  onTouchEnd:   () => void;
   cursor: string;
 }
 
@@ -260,20 +261,6 @@ export function useDrawing(isPlaying: boolean): UseDrawingReturn {
   const onMouseUp    = useCallback(() => endDraw(), [endDraw]);
   const onMouseLeave = useCallback(() => endDraw(), [endDraw]);
 
-  const onTouchStart = useCallback((e: React.TouchEvent<HTMLCanvasElement>) => {
-    e.preventDefault();
-    const t = e.touches[0];
-    if (t) startDraw(t.clientX, t.clientY);
-  }, [startDraw]);
-
-  const onTouchMove  = useCallback((e: React.TouchEvent<HTMLCanvasElement>) => {
-    e.preventDefault();
-    const t = e.touches[0];
-    if (t) moveDraw(t.clientX, t.clientY);
-  }, [moveDraw]);
-
-  const onTouchEnd = useCallback(() => endDraw(), [endDraw]);
-
   return {
     enabled, setEnabled,
     tool, setTool,
@@ -284,8 +271,8 @@ export function useDrawing(isPlaying: boolean): UseDrawingReturn {
     undo, redo, clear,
     strokes: history.strokes,
     committedRef, previewRef,
+    startDraw, moveDraw, endDraw,
     onMouseDown, onMouseMove, onMouseUp, onMouseLeave,
-    onTouchStart, onTouchMove, onTouchEnd,
     cursor: CURSOR_MAP[tool],
   };
 }

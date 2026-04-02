@@ -82,6 +82,11 @@
   height: 100%;
   object-fit: contain;
   display: block;
+  /* Zoom/pan transform driven by CSS custom properties set by useVideoTransform.
+     Using CSS vars instead of inline React styles means touch-gesture updates
+     bypass React's render cycle entirely — critical for smooth mobile performance. */
+  transform: translate(var(--zoom-tx, 0px), var(--zoom-ty, 0px)) scale(var(--zoom-scale, 1));
+  transform-origin: center center;
   will-change: transform;
   user-select: none;
   -webkit-user-drag: none;

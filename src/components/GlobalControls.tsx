@@ -53,8 +53,11 @@ export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Prop
   const eitherPlaying = left.isPlaying || right.isPlaying;
 
   const playBoth = useCallback(() => {
+    // iOS Safari may abort the first play() promise if a second is started
+    // synchronously on a different element. A one-frame delay ensures both
+    // videos start reliably without introducing perceptible desync.
     left.play();
-    right.play();
+    setTimeout(() => right.play(), 16);
   }, [left, right]);
 
   const pauseBoth = useCallback(() => {
@@ -70,7 +73,7 @@ export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Prop
     if (wasPlaying) {
       setTimeout(() => {
         left.play();
-        right.play();
+        setTimeout(() => right.play(), 16);
       }, 50);
     }
   }, [left, right, bothSynced, eitherPlaying]);

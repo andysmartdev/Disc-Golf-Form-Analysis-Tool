@@ -9,7 +9,17 @@ export interface VideoTransform { scale: number; tx: number; ty: number; }
  * Zoom + pan transform for a single video viewport.
  *
  * Zoom:  mouse wheel  or  trackpad pinch (ctrlKey+wheel), anchored to cursor.
- * Pan:   left-button drag, only when scale > 1.
+ *        Two-finger pinch on touch devices, anchored to the pinch midpoint.
+ * Pan:   left-button drag (mouse) or single-finger drag (touch), only when scale > 1.
+ *
+ * Performance: during touch gestures the transform is applied via CSS custom
+ * properties (--zoom-tx/ty/scale) directly on the container element, completely
+ * bypassing React's render cycle. React state is only synced at gesture end so
+ * the zoom badge can update.
+ *
+ * Scroll behaviour: e.preventDefault() is only called when the touch will
+ * actually do something (2-finger pinch, or 1-finger drag when scale > 1).
+ * Single-finger touches at scale 1 are left alone so the page can scroll.
  *
  * Constraints:
  *  · scale ∈ [1, 5] — cannot shrink below original size.
@@ -21,15 +31,8 @@ export function useVideoTransform(isPlaying: boolean) {
 
   const [t, _setT] = useState<VideoTransform>({ scale: 1, tx: 0, ty: 0 });
 
-  // Keep a synchronous mirror of state for use inside event handlers.
+  // Synchronous mirror of state for use inside event handlers.
   const tRef = useRef(t);
-  const setT = useCallback((updater: (prev: VideoTransform) => VideoTransform) => {
-    _setT(prev => {
-      const next = updater(prev);
-      tRef.current = next;
-      return next;
-    });
-  }, []);
 
   const drag = useRef({
     active: false,
@@ -54,14 +57,38 @@ export function useVideoTransform(isPlaying: boolean) {
     };
   }, []);
 
+  /**
+   * Write the transform directly to CSS custom properties on the container.
+   * This skips React rendering — the browser composites the change on the GPU
+   * without touching the JS thread again, giving smooth 60fps+ on mobile.
+   */
+  const applyVars = useCallback((tx: number, ty: number, scale: number) => {
+    const el = containerRef.current;
+    if (!el) return;
+    el.style.setProperty('--zoom-tx',    `${tx}px`);
+    el.style.setProperty('--zoom-ty',    `${ty}px`);
+    el.style.setProperty('--zoom-scale', String(scale));
+  }, []);
+
+  /** Commit a new transform — updates tRef, CSS vars, AND React state. */
+  const setT = useCallback((updater: (prev: VideoTransform) => VideoTransform) => {
+    _setT(prev => {
+      const next = updater(prev);
+      tRef.current = next;
+      applyVars(next.tx, next.ty, next.scale);
+      return next;
+    });
+  }, [applyVars]);
+
   const reset = useCallback(() => {
     const z: VideoTransform = { scale: 1, tx: 0, ty: 0 };
     tRef.current = z;
+    applyVars(0, 0, 1);
     _setT(z);
-  }, []);
+  }, [applyVars]);
 
   // ── Wheel / trackpad pinch zoom ─────────────────────────────────────────
-  // Must use a non-passive listener to call preventDefault().
+  // Non-passive listener so we can call preventDefault().
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -95,56 +122,73 @@ export function useVideoTransform(isPlaying: boolean) {
   }, [isPlaying, clampT, setT]);
 
   // ── Touch: pinch-to-zoom + single-finger pan ─────────────────────────────
+  // Performance: during move, transform is applied via applyVars (CSS custom
+  // properties) to skip React renders. State is committed only on touchend.
+  //
+  // Scroll: preventDefault is only called when we're actually consuming the
+  // gesture. Single-finger at scale=1 passes through so the page can scroll.
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
 
     let pinchDist   = 0;
     let pinchCenter = { x: 0, y: 0 };
+    let gestureActive = false; // true while a zoom/pan gesture owns the touch
 
-    const getDist = (t: TouchList) =>
-      Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
-    const getMid  = (t: TouchList) => ({
-      x: (t[0].clientX + t[1].clientX) / 2,
-      y: (t[0].clientY + t[1].clientY) / 2,
+    const getDist = (touches: TouchList) =>
+      Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
+    const getMid  = (touches: TouchList) => ({
+      x: (touches[0].clientX + touches[1].clientX) / 2,
+      y: (touches[0].clientY + touches[1].clientY) / 2,
     });
 
     const onTouchStart = (e: TouchEvent) => {
-      e.preventDefault();
       if (isPlaying) return;
+
       if (e.touches.length === 2) {
+        // Pinch — always consume (prevent browser native zoom).
+        e.preventDefault();
+        gestureActive = true;
         pinchDist   = getDist(e.touches);
         pinchCenter = getMid(e.touches);
-        drag.current.active = false; // cancel any in-progress pan
+        drag.current.active = false;
       } else if (e.touches.length === 1 && tRef.current.scale > 1) {
+        // Single-finger pan — only when zoomed.
+        e.preventDefault();
+        gestureActive = true;
         drag.current = {
           active: true, moved: false,
           startX: e.touches[0].clientX, startY: e.touches[0].clientY,
           startTx: tRef.current.tx,     startTy: tRef.current.ty,
         };
+      } else {
+        // Single-finger at scale 1 — let the page scroll naturally.
+        gestureActive = false;
       }
     };
 
     const onTouchMove = (e: TouchEvent) => {
+      if (isPlaying || !gestureActive) return;
       e.preventDefault();
-      if (isPlaying) return;
 
       if (e.touches.length === 2 && pinchDist > 0) {
         const dist   = getDist(e.touches);
         const center = getMid(e.touches);
         const rect   = el.getBoundingClientRect();
 
-        setT(prev => {
-          const factor   = dist / pinchDist;
-          const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, prev.scale * factor));
-          // Zoom anchored to pinch midpoint + translate for center movement
-          const cx   = center.x - rect.left - rect.width  / 2;
-          const cy   = center.y - rect.top  - rect.height / 2;
-          const r    = newScale / prev.scale;
-          const panX = center.x - pinchCenter.x;
-          const panY = center.y - pinchCenter.y;
-          return clampT(cx - (cx - prev.tx) * r + panX, cy - (cy - prev.ty) * r + panY, newScale);
-        });
+        const factor   = dist / pinchDist;
+        const prev     = tRef.current;
+        const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, prev.scale * factor));
+        const cx   = center.x - rect.left - rect.width  / 2;
+        const cy   = center.y - rect.top  - rect.height / 2;
+        const r    = newScale / prev.scale;
+        const panX = center.x - pinchCenter.x;
+        const panY = center.y - pinchCenter.y;
+        const newT = clampT(cx - (cx - prev.tx) * r + panX, cy - (cy - prev.ty) * r + panY, newScale);
+
+        // Apply visually without React re-render.
+        tRef.current = newT;
+        applyVars(newT.tx, newT.ty, newT.scale);
 
         pinchDist   = dist;
         pinchCenter = center;
@@ -152,21 +196,30 @@ export function useVideoTransform(isPlaying: boolean) {
         const dx = e.touches[0].clientX - drag.current.startX;
         const dy = e.touches[0].clientY - drag.current.startY;
         if (!drag.current.moved && (Math.abs(dx) > 2 || Math.abs(dy) > 2)) drag.current.moved = true;
-        if (drag.current.moved) setT(prev => clampT(drag.current.startTx + dx, drag.current.startTy + dy, prev.scale));
+        if (drag.current.moved) {
+          const newT = clampT(drag.current.startTx + dx, drag.current.startTy + dy, tRef.current.scale);
+          tRef.current = newT;
+          applyVars(newT.tx, newT.ty, newT.scale);
+        }
       }
     };
 
     const onTouchEnd = (e: TouchEvent) => {
-      e.preventDefault();
       if (e.touches.length < 2) pinchDist = 0;
-      // Lifting one finger during a pinch: seamlessly continue as single-finger pan
+
+      // Commit the final transform to React state (updates zoom badge etc.).
+      if (gestureActive) _setT(tRef.current);
+
+      // Lifting one finger mid-pinch → continue as single-finger pan.
       if (e.touches.length === 1 && tRef.current.scale > 1) {
+        gestureActive = true;
         drag.current = {
           active: true, moved: false,
           startX: e.touches[0].clientX, startY: e.touches[0].clientY,
           startTx: tRef.current.tx,     startTy: tRef.current.ty,
         };
       } else if (e.touches.length === 0) {
+        gestureActive = false;
         drag.current.active = false;
       }
     };
@@ -179,12 +232,11 @@ export function useVideoTransform(isPlaying: boolean) {
       el.removeEventListener('touchmove',  onTouchMove);
       el.removeEventListener('touchend',   onTouchEnd);
     };
-  }, [isPlaying, clampT, setT]);
+  }, [isPlaying, clampT, applyVars]);
 
   // ── Mouse drag pan ───────────────────────────────────────────────────────
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button !== 0) return;
-    // Always reset moved flag so click detection is fresh each press.
     drag.current.moved  = false;
     drag.current.active = false;
     if (isPlaying || tRef.current.scale <= 1) return;
@@ -225,8 +277,6 @@ export function useVideoTransform(isPlaying: boolean) {
     };
   }, [clampT, setT]);
 
-  /** Returns true if the last mousedown turned into a drag — lets the caller
-   *  suppress the following click event (e.g. don't toggle play). */
   const wasDrag = useCallback(() => drag.current.moved, []);
 
   const cursor: React.CSSProperties['cursor'] =

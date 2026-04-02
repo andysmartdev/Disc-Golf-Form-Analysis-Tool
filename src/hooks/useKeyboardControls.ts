@@ -60,7 +60,8 @@ export function useKeyboardControls(opts: KeyboardControlsOptions) {
           if (left.isPlaying || right.isPlaying) {
             left.pause(); right.pause();
           } else {
-            left.play(); right.play();
+            left.play();
+            setTimeout(() => right.play(), 16);
           }
           break;
 

@@ -141,10 +141,10 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded, drawing, onC
         className={`video-panel__viewport${isDragging ? ' video-panel__viewport--drag' : ''}`}
         style={{
           cursor: isDragging ? undefined : (canDraw ? drawing.cursor : zoomCursor),
-          // Disable all native browser touch gestures on the viewport when a video
-          // is loaded — our JS handles zoom/pan (and drawing) via non-passive
-          // native event listeners, so the browser must not intercept these.
-          touchAction: src ? 'none' : undefined,
+          // Lock out native browser gestures only when we're actively using the
+          // viewport for zoom/pan (scale > 1) or drawing. At scale = 1 with no
+          // draw mode, single-finger touches fall through so the page can scroll.
+          touchAction: (src && (zoom.scale > 1 || canDraw)) ? 'none' : undefined,
         }}
         onMouseDown={canDraw ? undefined : onZoomMouseDown}
         onDragEnter={handleDragEnter}
@@ -154,29 +154,17 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded, drawing, onC
       >
         {src ? (
           <>
-            {/* Extract zoom style so both video and canvas share the same transform */}
-            {(() => {
-              const zoomStyle: React.CSSProperties | undefined = zoom.scale > 1 ? {
-                transform: `translate(${zoom.tx}px, ${zoom.ty}px) scale(${zoom.scale})`,
-                transformOrigin: 'center center',
-              } : undefined;
-              return (
-                <>
-                  <video
-                    ref={videoRef}
-                    src={src}
-                    className="video-panel__video"
-                    playsInline
-                    preload="metadata"
-                    style={zoomStyle}
-                  />
-                  <DrawingCanvasLayer
-                    drawing={drawing}
-                    canDraw={canDraw}
-                  />
-                </>
-              );
-            })()}
+            <video
+              ref={videoRef}
+              src={src}
+              className="video-panel__video"
+              playsInline
+              preload="metadata"
+            />
+            <DrawingCanvasLayer
+              drawing={drawing}
+              canDraw={canDraw}
+            />
             {zoom.scale > 1 && (
               <button
                 className="video-panel__zoom-badge"

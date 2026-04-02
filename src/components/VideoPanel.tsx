@@ -163,6 +163,8 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded, drawing, onC
               controlsList="nodownload nofullscreen noremoteplayback"
               disablePictureInPicture
               disableRemotePlayback
+              // Suppress iOS Safari's AirPlay overlay button
+              {...{ 'x-webkit-airplay': 'deny' }}
             />
             <DrawingCanvasLayer
               drawing={drawing}

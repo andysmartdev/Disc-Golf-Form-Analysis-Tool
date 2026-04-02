@@ -69,7 +69,11 @@ export default function App() {
       rightPlayer.seek(0);
     }
     if (wasPlaying) {
-      setTimeout(() => { leftPlayer.play().then(() => rightPlayer.play()); }, 50);
+      setTimeout(() => {
+        const p1 = leftPlayer.play();
+        const p2 = rightPlayer.play();
+        Promise.all([p1, p2]).catch(() => {});
+      }, 50);
     }
   }, [leftPlayer, rightPlayer]);
 

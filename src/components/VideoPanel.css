@@ -93,19 +93,30 @@
 }
 
 /* Suppress every layer of WebKit/Blink's native media control UI.
-   Without controls attribute these are normally hidden, but iOS Safari
-   and some Android browsers inject overlays during playback. */
-.video-panel__video::-webkit-media-controls             { display: none !important; }
-.video-panel__video::-webkit-media-controls-enclosure  { display: none !important; }
-.video-panel__video::-webkit-media-controls-panel      { display: none !important; }
-.video-panel__video::-webkit-media-controls-overlay-play-button { display: none !important; }
-.video-panel__video::-webkit-media-controls-play-button         { display: none !important; }
-.video-panel__video::-webkit-media-controls-timeline           { display: none !important; }
-.video-panel__video::-webkit-media-controls-current-time-display { display: none !important; }
-.video-panel__video::-webkit-media-controls-time-remaining-display { display: none !important; }
-.video-panel__video::-webkit-media-controls-volume-slider      { display: none !important; }
-.video-panel__video::-webkit-media-controls-mute-button        { display: none !important; }
-.video-panel__video::-webkit-media-controls-fullscreen-button  { display: none !important; }
+   Several of these overlays appear on iOS Safari even WITHOUT the `controls`
+   attribute — they're injected as "intrinsic" chrome (AirPlay, tap-to-play,
+   Picture-in-Picture). The full list covers all known pseudo-elements. */
+.video-panel__video::-webkit-media-controls                              { display: none !important; }
+.video-panel__video::-webkit-media-controls-enclosure                   { display: none !important; }
+.video-panel__video::-webkit-media-controls-container                   { display: none !important; }
+.video-panel__video::-webkit-media-controls-panel                       { display: none !important; }
+.video-panel__video::-webkit-media-controls-overlay-play-button         { display: none !important; }
+.video-panel__video::-webkit-media-controls-start-playback-button       { display: none !important; }
+.video-panel__video::-webkit-media-controls-play-button                 { display: none !important; }
+.video-panel__video::-webkit-media-controls-timeline                    { display: none !important; }
+.video-panel__video::-webkit-media-controls-current-time-display        { display: none !important; }
+.video-panel__video::-webkit-media-controls-time-remaining-display      { display: none !important; }
+.video-panel__video::-webkit-media-controls-volume-slider               { display: none !important; }
+.video-panel__video::-webkit-media-controls-mute-button                 { display: none !important; }
+.video-panel__video::-webkit-media-controls-fullscreen-button           { display: none !important; }
+.video-panel__video::-webkit-media-controls-rewind-button               { display: none !important; }
+.video-panel__video::-webkit-media-controls-return-to-realtime-button   { display: none !important; }
+.video-panel__video::-webkit-media-controls-seek-back-button            { display: none !important; }
+.video-panel__video::-webkit-media-controls-seek-forward-button         { display: none !important; }
+.video-panel__video::-webkit-media-controls-toggle-closed-captions-button { display: none !important; }
+.video-panel__video::-webkit-media-controls-status-display              { display: none !important; }
+/* Fallback: nuke the entire shadow DOM root if the above are insufficient */
+.video-panel__video::-webkit-media-controls-overlay-enclosure           { display: none !important; }
 
 /* ── Zoom level badge (bottom-right of viewport) ──── */
 .video-panel__zoom-badge {

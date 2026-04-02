@@ -53,10 +53,13 @@ export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Prop
   const eitherPlaying = left.isPlaying || right.isPlaying;
 
   const playBoth = useCallback(() => {
-    // Sequential play: wait for left to confirm it's playing before starting
-    // right. iOS Safari may abort the first play when a second is started
-    // simultaneously; awaiting the first promise prevents that race.
-    left.play().then(() => right.play());
+    // Call both synchronously so iOS Safari sees them in the same user-gesture
+    // activation frame. Chaining via .then() can lose the gesture activation
+    // scope by the time the microtask fires. Capture both promises and suppress
+    // any rejections from the pair together.
+    const p1 = left.play();
+    const p2 = right.play();
+    Promise.all([p1, p2]).catch(() => {});
   }, [left, right]);
 
   const pauseBoth = useCallback(() => {
@@ -71,7 +74,9 @@ export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Prop
     right.seek(right.syncPoint!);
     if (wasPlaying) {
       setTimeout(() => {
-        left.play().then(() => right.play());
+        const p1 = left.play();
+        const p2 = right.play();
+        Promise.all([p1, p2]).catch(() => {});
       }, 50);
     }
   }, [left, right, bothSynced, eitherPlaying]);

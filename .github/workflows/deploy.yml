@@ -35,7 +35,7 @@ jobs:
       - name: Build
         run: npm run build
         # GITHUB_ACTIONS=true is set automatically — vite.config.ts uses it
-        # to switch base from '/' to '/dg-video-scrubber/'
+        # to switch base from '/' to '/Disc-Golf-Form-Analysis-Tool/'
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

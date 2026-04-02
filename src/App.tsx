@@ -95,14 +95,42 @@ export default function App() {
         <div className="app-header__brand">
           <div className="app-header__logo">
             <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeWidth="6"/>
-              <circle cx="50" cy="50" r="18" fill="none" stroke="currentColor" strokeWidth="4"/>
-              <circle cx="50" cy="50" r="6" fill="currentColor"/>
-            </svg>
+                {/* Ground line */}
+                <line x1="6" y1="87" x2="94" y2="87" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+
+                {/* Wheels — left */}
+                <circle cx="24" cy="84" r="6" fill="none" stroke="currentColor" strokeWidth="2"/>
+                <circle cx="24" cy="84" r="2" fill="currentColor"/>
+                {/* Wheels — right */}
+                <circle cx="72" cy="84" r="6" fill="none" stroke="currentColor" strokeWidth="2"/>
+                <circle cx="72" cy="84" r="2" fill="currentColor"/>
+
+                {/* A-frame: left leg, right leg, top beam, cross-brace */}
+                <line x1="24" y1="83" x2="40" y2="44" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                <line x1="72" y1="83" x2="52" y2="44" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                <line x1="40" y1="44" x2="52" y2="44" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                <line x1="30" y1="64" x2="66" y2="64" stroke="currentColor" strokeWidth="2"   strokeLinecap="round"/>
+
+                {/* Pivot fulcrum */}
+                <circle cx="46" cy="44" r="3" fill="currentColor"/>
+
+                {/* Throwing arm — line passes through pivot (46, 44) at ~72° */}
+                <line x1="43" y1="53.5" x2="54.5" y2="17" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+
+                {/* Counterweight rope + block */}
+                <line x1="43" y1="53.5" x2="43" y2="64" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                <rect x="37" y="64" width="12" height="11" rx="2" fill="currentColor"/>
+
+                {/* Sling rope */}
+                <line x1="54.5" y1="17" x2="77" y2="9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+
+                {/* Projectile */}
+                <circle cx="81" cy="7" r="4.5" fill="none" stroke="currentColor" strokeWidth="2.5"/>
+              </svg>
           </div>
           <div>
-            <h1 className="app-header__title">DG Form Analyzer</h1>
-            <p className="app-header__sub">Side-by-side disc golf throw analysis</p>
+            <h1 className="app-header__title">DG FAT</h1>
+            <p className="app-header__sub">Side-By-Side Disc Golf Form Analysis Tool</p>
           </div>
         </div>
         <div className="app-header__actions">

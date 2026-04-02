@@ -94,7 +94,7 @@ export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Prop
           aria-label={isCollapsed ? 'Expand controls' : 'Collapse controls'}
           title={isCollapsed ? 'Expand controls' : 'Collapse controls'}
         >
-          {isCollapsed ? '▼' : '▲'}
+          {isCollapsed ? '▼\uFE0E' : '▲\uFE0E'}
         </button>
       </div>
 
@@ -109,7 +109,7 @@ export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Prop
             disabled={!bothLoaded}
             title="Pause both (Space)"
           >
-            ⏸ Pause
+            ⏸{'\uFE0E'} Pause
           </button>
         ) : (
           <button
@@ -118,7 +118,7 @@ export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Prop
             disabled={!bothLoaded}
             title="Play both (Space)"
           >
-            ▶ Play
+            ▶{'\uFE0E'} Play
           </button>
         )}
 
@@ -130,7 +130,7 @@ export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Prop
             ? 'Return to sync points (Enter)'
             : 'Set sync points on both players first (S · K)'}
         >
-          ⌖ Sync
+          ⌖{'\uFE0E'} Sync
         </button>
 
         {!isCollapsed && (
@@ -156,7 +156,7 @@ export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Prop
           <div className="sync-scrubber">
             {!isCollapsed && (
               <div className="sync-scrubber__label">
-                <span>⌖ Synchronized Scrub</span>
+                <span>⌖{'\uFE0E'} Synchronized Scrub</span>
                 <div className="sync-scrubber__label-right">
                   <span
                     className="drift-badge"
@@ -212,7 +212,7 @@ export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Prop
               B {right.syncPoint !== null ? '✓' : '✗'}
             </span>
             {bothSynced && !isDrifted && (
-              <span className="status-chip status-chip--info">⌖ In Sync</span>
+              <span className="status-chip status-chip--info">⌖{'\uFE0E'} In Sync</span>
             )}
             {bothSynced && isDrifted && (
               <span className="status-chip status-chip--warn">⚡ Drifted</span>

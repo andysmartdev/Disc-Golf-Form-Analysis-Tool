@@ -90,6 +90,21 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
 
+/* ── Global button / symbol rendering ─────────────── */
+/* Force all Unicode symbols to render as plain text glyphs, not colorful emoji.
+   Without this, iOS Safari renders ▶ ⏸ ⏮ ⇄ etc. as system emoji with native chrome. */
+button, select, option {
+  font-variant-emoji: text;         /* CSS Fonts Level 4 — Safari 17.4+ */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Strip ALL native select appearance on iOS/Android so our CSS fully controls it. */
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
 /* ── Range input (global base) ─────────────────────── */
 input[type='range'] {
   -webkit-appearance: none;

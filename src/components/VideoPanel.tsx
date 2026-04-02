@@ -124,14 +124,14 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded, drawing, onC
             title={drawing.enabled ? 'Exit draw mode' : 'Draw on video (annotate)'}
             aria-pressed={drawing.enabled}
           >
-            ✎
+            ✎{'\uFE0E'}
           </button>
         )}
         <button
           className="btn btn--load"
           onClick={() => fileInputRef.current?.click()}
         >
-          {src ? '⇄ Swap' : '+ Load'}
+          {src ? '⇄\uFE0E Swap' : '+ Load'}
         </button>
       </div>
 
@@ -246,7 +246,7 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded, drawing, onC
               ? `Pause (${side === 'left' ? 'W' : 'I'})`
               : `Play (${side === 'left' ? 'W' : 'I'})`}
           >
-            {isPlaying ? '⏸' : '▶'}
+            {isPlaying ? '⏸\uFE0E' : '▶\uFE0E'}
           </button>
 
           {/* Rewind to start */}
@@ -257,7 +257,7 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded, drawing, onC
             aria-label="Rewind to start"
             title={`Rewind to start (${side === 'left' ? 'Q' : 'U'})`}
           >
-            ⏮
+            ⏮{'\uFE0E'}
           </button>
 
           {/* Jump to sync point */}
@@ -268,7 +268,7 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded, drawing, onC
             aria-label="Jump to sync point"
             title={`Jump to sync point (${side === 'left' ? 'E' : 'O'})`}
           >
-            ⊙
+            ⊙{'\uFE0E'}
           </button>
 
           {/* Speed label (controlled globally) */}
@@ -286,14 +286,14 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded, drawing, onC
               ? `Set sync point here (${side === 'left' ? 'S' : 'K'})`
               : 'Load both players first'}
           >
-            ⌖ Set Sync
+            ⌖{'\uFE0E'} Set Sync
           </button>
 
           {/* Clear sync */}
           {syncPoint !== null && (
             <>
               <div className="sync-badge" title={`Sync point: ${formatTime(syncPoint)}`}>
-                <span>⌖</span>
+                <span>⌖{'\uFE0E'}</span>
                 <span className="sync-badge__time">{formatTime(syncPoint)}</span>
               </div>
               <button
@@ -302,7 +302,7 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded, drawing, onC
                 aria-label="Clear sync point"
                 title={`Clear sync point (Shift+${side === 'left' ? 'S' : 'K'})`}
               >
-                ✕
+                ✕{'\uFE0E'}
               </button>
             </>
           )}

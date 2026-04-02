@@ -11,12 +11,12 @@ interface Props {
 type ToolDef = { id: DrawTool; label: string; title: string };
 
 const TOOLS: ToolDef[] = [
-  { id: 'pencil', label: '✎', title: 'Pencil — freeform draw' },
-  { id: 'line',   label: '╱', title: 'Line' },
-  { id: 'arrow',  label: '↗', title: 'Arrow' },
-  { id: 'circle', label: '◯', title: 'Ellipse' },
-  { id: 'rect',   label: '▭', title: 'Rectangle' },
-  { id: 'eraser', label: '⌫', title: 'Eraser (3× stroke width)' },
+  { id: 'pencil', label: '✎\uFE0E', title: 'Pencil — freeform draw' },
+  { id: 'line',   label: '╱\uFE0E', title: 'Line' },
+  { id: 'arrow',  label: '↗\uFE0E', title: 'Arrow' },
+  { id: 'circle', label: '◯\uFE0E', title: 'Ellipse' },
+  { id: 'rect',   label: '▭\uFE0E', title: 'Rectangle' },
+  { id: 'eraser', label: '⌫\uFE0E', title: 'Eraser (3× stroke width)' },
 ];
 
 export function DrawingToolbar({ drawing, side, onClearBoth }: Props) {
@@ -109,7 +109,7 @@ export function DrawingToolbar({ drawing, side, onClearBoth }: Props) {
           disabled={!canUndo}
           title={`Undo last stroke (${undoKey})`}
         >
-          ↩ Undo
+          ↩{'\uFE0E'} Undo
         </button>
         <button
           className="drawing-btn drawing-btn--action"
@@ -117,21 +117,21 @@ export function DrawingToolbar({ drawing, side, onClearBoth }: Props) {
           disabled={!canRedo}
           title={`Redo stroke (${redoKey})`}
         >
-          ↪ Redo
+          ↪{'\uFE0E'} Redo
         </button>
         <button
           className="drawing-btn drawing-btn--action"
           onClick={clear}
           title="Clear this player's drawings"
         >
-          ✕ Clear
+          ✕{'\uFE0E'} Clear
         </button>
         <button
           className="drawing-btn drawing-btn--action drawing-btn--clear-both"
           onClick={onClearBoth}
           title="Clear drawings on both players"
         >
-          ✕✕ Both
+          ✕✕{'\uFE0E'} Both
         </button>
       </div>
     </div>

@@ -159,6 +159,7 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded, drawing, onC
               src={src}
               className="video-panel__video"
               playsInline
+              muted
               preload="metadata"
               controlsList="nodownload nofullscreen noremoteplayback"
               disablePictureInPicture

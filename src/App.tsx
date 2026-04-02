@@ -70,9 +70,7 @@ export default function App() {
     }
     if (wasPlaying) {
       setTimeout(() => {
-        const p1 = leftPlayer.playWithRetry();
-        const p2 = rightPlayer.play();
-        Promise.all([p1, p2]).catch(() => {});
+        Promise.all([leftPlayer.play(), rightPlayer.play()]).catch(() => {});
       }, 50);
     }
   }, [leftPlayer, rightPlayer]);

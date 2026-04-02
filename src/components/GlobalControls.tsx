@@ -53,12 +53,9 @@ export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Prop
   const eitherPlaying = left.isPlaying || right.isPlaying;
 
   const playBoth = useCallback(() => {
-    // Both calls are synchronous and within the same user-gesture activation.
-    // playWithRetry detects if iOS aborts the first video when the second
-    // starts and automatically retries after 200ms.
-    const p1 = left.playWithRetry();
-    const p2 = right.play();
-    Promise.all([p1, p2]).catch(() => {});
+    // Both videos are muted, so iOS Safari won't fire an audio session conflict.
+    // Both play() calls fire synchronously within the same user gesture frame.
+    Promise.all([left.play(), right.play()]).catch(() => {});
   }, [left, right]);
 
   const pauseBoth = useCallback(() => {
@@ -73,9 +70,7 @@ export function GlobalControls({ left, right, globalSpeed, onSpeedChange }: Prop
     right.seek(right.syncPoint!);
     if (wasPlaying) {
       setTimeout(() => {
-        const p1 = left.playWithRetry();
-        const p2 = right.play();
-        Promise.all([p1, p2]).catch(() => {});
+        Promise.all([left.play(), right.play()]).catch(() => {});
       }, 50);
     }
   }, [left, right, bothSynced, eitherPlaying]);

@@ -160,6 +160,9 @@ export function VideoPanel({ side, player, globalSpeed, bothLoaded, drawing, onC
               className="video-panel__video"
               playsInline
               preload="metadata"
+              controlsList="nodownload nofullscreen noremoteplayback"
+              disablePictureInPicture
+              disableRemotePlayback
             />
             <DrawingCanvasLayer
               drawing={drawing}

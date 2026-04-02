@@ -10,7 +10,7 @@ export interface VideoPlayerControls {
   playbackRate: number;
   syncPoint: number | null;
   loadFile: (file: File) => void;
-  play: () => void;
+  play: () => Promise<void>;
   pause: () => void;
   togglePlay: () => void;
   seek: (time: number) => void;
@@ -93,10 +93,14 @@ export function useVideoPlayer(): VideoPlayerControls {
     if (v) v.playbackRate = 1;
   }, []);
 
-  // play() returns a Promise — always catch AbortError to avoid unhandled
-  // rejections that can corrupt the element's internal play pipeline.
-  const play = useCallback(() => {
-    videoRef.current?.play().catch(() => {});
+  // play() returns a Promise so callers can sequence multiple plays.
+  // Always catch AbortError — on iOS Safari, calling play() on a second
+  // video can abort the first; returning the Promise lets the caller
+  // wait for the first video to confirm playing before starting the next.
+  const play = useCallback((): Promise<void> => {
+    const v = videoRef.current;
+    if (!v) return Promise.resolve();
+    return v.play().catch(() => {});
   }, []);
 
   const pause = useCallback(() => {

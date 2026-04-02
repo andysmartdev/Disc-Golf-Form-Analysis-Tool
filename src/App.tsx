@@ -69,7 +69,7 @@ export default function App() {
       rightPlayer.seek(0);
     }
     if (wasPlaying) {
-      setTimeout(() => { leftPlayer.play(); rightPlayer.play(); }, 50);
+      setTimeout(() => { leftPlayer.play().then(() => rightPlayer.play()); }, 50);
     }
   }, [leftPlayer, rightPlayer]);
 

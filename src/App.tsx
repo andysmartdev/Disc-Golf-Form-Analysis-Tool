@@ -174,22 +174,21 @@ export default function App() {
             drawing={drawingRight} onClearBoth={handleClearBothDrawings} />
         </div>
       </main>
-
       {/* ── Footer ── */}
       <footer className="app-footer">
-        <span>DG Form Analyzer — load videos, set sync points, compare &amp; analyze</span>
         {/* Mobile-only: hard reload because pull-to-refresh is intentionally disabled */}
         <button
           className="app-footer__new-session"
-          onClick={() => window.location.reload()}
+          onClick={() => window.location.reload}
           title="Clear all loaded videos and start a fresh session"
         >
           &#8635;&nbsp;New Session
         </button>
+        <span>
+          <KeyboardHelp isOpen={showHelp} onClose={() => setShowHelp(false)} />
+          DG Form Analysis Tool
+        </span>
       </footer>
-
-      {/* ── Keyboard help modal ── */}
-      <span><KeyboardHelp isOpen={showHelp} onClose={() => setShowHelp(false)} />·  load videos, set sync points, compare &amp; analyze</span>
     </div>
   );
 }

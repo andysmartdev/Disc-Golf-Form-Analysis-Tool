@@ -120,6 +120,14 @@
   color: var(--text-dim);
   text-align: center;
   letter-spacing: 0.03em;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.app-footer__new-session {
+  /* Hidden on desktop — pull-to-refresh works fine there */
+  display: none;
 }
 
 /* ── Responsive: tablet ──────────────────────────── */
@@ -144,4 +152,28 @@
   .app-header__sub { display: none; }
   .app-main { gap: 10px; }
   .global-controls { padding: 14px; }
+
+  /* New Session button — mobile only, tucked at the bottom of the footer */
+  .app-footer__new-session {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 10px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    /* Needs its own touch-action since body has touch-action:manipulation */
+    touch-action: manipulation;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .app-footer__new-session:hover,
+  .app-footer__new-session:active {
+    color: var(--text);
+    border-color: var(--text-dim);
+  }
 }

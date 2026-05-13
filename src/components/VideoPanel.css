@@ -1,0 +1,409 @@
+/* ── Panel wrapper ───────────────────────────────── */
+.video-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.2s;
+  min-width: 0;
+}
+.video-panel:hover { box-shadow: var(--shadow), var(--glow); }
+
+/* ── Panel header ────────────────────────────────── */
+.video-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-subtle);
+  gap: 8px;
+  min-height: var(--h-panel-hdr);
+}
+
+.video-panel__label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.video-panel__filename {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 180px;
+  flex: 1;
+  text-align: right;
+}
+
+/* ── Video area ──────────────────────────────────── */
+.video-panel__viewport {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  overflow: hidden;
+  transition: outline 0.1s;
+  user-select: none;
+}
+
+/* Drag-over highlight */
+.video-panel__viewport--drag {
+  outline: 3px solid var(--accent);
+  outline-offset: -3px;
+}
+.video-panel__viewport--drag::after {
+  content: 'Drop video here';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: var(--fs-icon);
+  font-weight: 600;
+  color: var(--accent);
+  background: rgba(0, 200, 255, 0.08);
+  pointer-events: none;
+  letter-spacing: 0.05em;
+}
+
+.video-panel__video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  /* Zoom/pan transform driven by CSS custom properties set by useVideoTransform.
+     Using CSS vars instead of inline React styles means touch-gesture updates
+     bypass React's render cycle entirely — critical for smooth mobile performance. */
+  transform: translate(var(--zoom-tx, 0px), var(--zoom-ty, 0px)) scale(var(--zoom-scale, 1));
+  transform-origin: center center;
+  will-change: transform;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Suppress every layer of WebKit/Blink's native media control UI.
+   Several of these overlays appear on iOS Safari even WITHOUT the `controls`
+   attribute — they're injected as "intrinsic" chrome (AirPlay, tap-to-play,
+   Picture-in-Picture). The full list covers all known pseudo-elements. */
+.video-panel__video::-webkit-media-controls                              { display: none !important; }
+.video-panel__video::-webkit-media-controls-enclosure                   { display: none !important; }
+.video-panel__video::-webkit-media-controls-container                   { display: none !important; }
+.video-panel__video::-webkit-media-controls-panel                       { display: none !important; }
+.video-panel__video::-webkit-media-controls-overlay-play-button         { display: none !important; }
+.video-panel__video::-webkit-media-controls-start-playback-button       { display: none !important; }
+.video-panel__video::-webkit-media-controls-play-button                 { display: none !important; }
+.video-panel__video::-webkit-media-controls-timeline                    { display: none !important; }
+.video-panel__video::-webkit-media-controls-current-time-display        { display: none !important; }
+.video-panel__video::-webkit-media-controls-time-remaining-display      { display: none !important; }
+.video-panel__video::-webkit-media-controls-volume-slider               { display: none !important; }
+.video-panel__video::-webkit-media-controls-mute-button                 { display: none !important; }
+.video-panel__video::-webkit-media-controls-fullscreen-button           { display: none !important; }
+.video-panel__video::-webkit-media-controls-rewind-button               { display: none !important; }
+.video-panel__video::-webkit-media-controls-return-to-realtime-button   { display: none !important; }
+.video-panel__video::-webkit-media-controls-seek-back-button            { display: none !important; }
+.video-panel__video::-webkit-media-controls-seek-forward-button         { display: none !important; }
+.video-panel__video::-webkit-media-controls-toggle-closed-captions-button { display: none !important; }
+.video-panel__video::-webkit-media-controls-status-display              { display: none !important; }
+/* Fallback: nuke the entire shadow DOM root if the above are insufficient */
+.video-panel__video::-webkit-media-controls-overlay-enclosure           { display: none !important; }
+
+/* ── Zoom level badge (bottom-right of viewport) ──── */
+.video-panel__zoom-badge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: clamp(2px, 0.3dvh, 4px) clamp(6px, 0.7dvh, 10px);
+  font-family: 'Space Mono', 'Courier New', monospace;
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  pointer-events: all;
+}
+.video-panel__zoom-badge:hover {
+  background: var(--accent);
+  color: #000;
+  border-color: transparent;
+}
+
+.video-panel__empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.video-panel__empty:hover { background: rgba(255,255,255,0.03); }
+
+.video-panel__empty-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px dashed var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-icon);
+  color: var(--text-dim);
+  transition: border-color 0.2s, color 0.2s;
+}
+.video-panel__empty:hover .video-panel__empty-icon {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.video-panel__empty-text {
+  font-size: var(--fs-md);
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.video-panel__empty-sub {
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+}
+
+/* ── Controls area ───────────────────────────────── */
+.video-panel__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px 14px;
+  background: var(--surface);
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* ── Scrubber row ────────────────────────────────── */
+.scrubber-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.scrubber-row__time {
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  white-space: nowrap;
+  min-width: 70px;
+  text-align: right;
+}
+
+.scrubber-track {
+  position: relative;
+  flex: 1;
+  height: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.scrubber-track input[type='range'] { height: 4px; }
+
+.scrubber-track__sync-marker {
+  position: absolute;
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  width: 3px;
+  height: 14px;
+  background: var(--accent2);
+  border-radius: 2px;
+  pointer-events: none;
+  box-shadow: 0 0 6px var(--accent2);
+}
+
+/* ── Playback buttons row ────────────────────────── */
+.controls-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: var(--h-btn);
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.btn--icon {
+  width: var(--h-btn);
+  padding: 0;
+  border-radius: 8px;
+}
+
+.btn--primary {
+  background: var(--accent);
+  color: #000;
+}
+.btn--primary:hover { filter: brightness(1.15); box-shadow: 0 0 12px var(--accent); }
+
+.btn--playing {
+  background: var(--success);
+  color: #000;
+}
+.btn--playing:hover { filter: brightness(1.15); box-shadow: 0 0 12px var(--success); }
+
+.btn--ghost {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.btn--ghost:hover { background: var(--card-hover); color: var(--text); border-color: var(--text-dim); }
+
+.btn--accent2 {
+  background: transparent;
+  color: var(--accent2);
+  border: 1px solid var(--accent2);
+}
+.btn--accent2:hover { background: var(--accent2); color: #fff; box-shadow: 0 0 10px var(--accent2); }
+
+.btn--danger {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+.btn--danger:hover { background: var(--danger); color: #fff; }
+
+.btn--active {
+  background: var(--accent2) !important;
+  color: #fff !important;
+  border-color: var(--accent2) !important;
+  box-shadow: 0 0 10px var(--accent2);
+}
+
+.btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ── Speed label (read-only, set globally) ───────── */
+.speed-label {
+  display: inline-flex;
+  align-items: center;
+  height: var(--h-btn);
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  background: var(--card);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* ── Speed selector ──────────────────────────────── */
+.speed-select {
+  height: var(--h-btn);
+  padding: 0 24px 0 8px;  /* right padding leaves room for custom arrow */
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+  /* Suppress ALL native select chrome on iOS/Android */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  /* Custom dropdown arrow via background-image */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7a99'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 7px center;
+}
+.speed-select:hover { border-color: var(--text-dim); }
+.speed-select:focus { border-color: var(--accent); }
+
+/* ── Sync point badge ────────────────────────────── */
+.sync-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 8px;
+  height: var(--h-badge);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--accent2) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent2) 40%, transparent);
+  font-size: var(--fs-xs);
+  color: var(--accent2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ── File input hidden ───────────────────────────── */
+.file-input-hidden { display: none; }
+
+/* ── Load button ─────────────────────────────────── */
+.btn--load {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  font-size: var(--fs-xs);
+  height: var(--h-btn-xs);
+  padding: 0 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.btn--load:hover {
+  background: var(--accent);
+  color: #000;
+  box-shadow: 0 0 10px var(--accent);
+}
+
+/* ── Narrow panel: keep controls on one line ─────── */
+/* Triggered on small phones or extreme zoom where panel width < ~420px */
+@media (max-width: 420px) {
+  .video-panel__controls { padding: 10px 10px 12px; }
+
+  .controls-row { gap: 4px; }
+
+  /* Tighten icon buttons */
+  .btn--icon { width: calc(var(--h-btn) - 4px); }
+
+  /* Compress text buttons */
+  .btn--load,
+  .controls-row > .btn:not(.btn--icon) { padding: 0 7px; }
+
+  /* Speed label narrower */
+  .speed-label { padding: 0 6px; }
+
+  /* Sync badge: hide the timestamp, keep the icon so badge stays narrow */
+  .sync-badge .sync-badge__time { display: none; }
+  .sync-badge { padding: 0 6px; gap: 0; }
+}
+

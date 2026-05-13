@@ -1,0 +1,293 @@
+/* ── Global controls card ────────────────────────── */
+.global-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.global-controls--collapsed {
+  gap: 10px;
+  padding: 14px 20px;
+}
+
+.global-controls__title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.global-controls__title::before,
+.global-controls__title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-subtle);
+}
+
+/* ── Collapse toggle button ──────────────────────── */
+.global-controls__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: clamp(20px, 2dvh, 26px);
+  height: clamp(20px, 2dvh, 26px);
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: var(--fs-2xs);
+  padding: 0;
+  transition: border-color 0.15s, color 0.15s;
+}
+.global-controls__toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Row layouts ─────────────────────────────────── */
+.global-controls__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.global-controls__section-label {
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  min-width: 56px;
+}
+
+/* ── Sync scrubber ───────────────────────────────── */
+.sync-scrubber {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sync-scrubber__label {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sync-scrubber__label-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sync-scrubber__range-wrap {
+  position: relative;
+  height: clamp(20px, 2.2dvh, 28px);
+  display: flex;
+  align-items: center;
+}
+
+.sync-scrubber__range-wrap input[type='range'] {
+  background: linear-gradient(
+    to right,
+    var(--accent) 0%,
+    var(--accent) calc(var(--pct, 0) * 1%),
+    var(--border) calc(var(--pct, 0) * 1%),
+    var(--border) 100%
+  );
+  transition: background 0.2s;
+}
+
+/* Drifted scrubber turns amber */
+.sync-scrubber__range-wrap input.scrubber--drifted {
+  background: linear-gradient(
+    to right,
+    var(--warning) 0%,
+    var(--warning) calc(var(--pct, 0) * 1%),
+    var(--border) calc(var(--pct, 0) * 1%),
+    var(--border) 100%
+  );
+}
+.sync-scrubber__range-wrap input.scrubber--drifted::-webkit-slider-thumb {
+  background: var(--warning);
+  box-shadow: 0 0 6px var(--warning);
+}
+.sync-scrubber__range-wrap input.scrubber--drifted::-moz-range-thumb {
+  background: var(--warning);
+}
+
+.sync-scrubber__time-display {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-2xs);
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Divider ─────────────────────────────────────── */
+.global-controls__divider {
+  height: 1px;
+  background: var(--border-subtle);
+}
+
+/* ── Status bar ──────────────────────────────────── */
+.global-controls__status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  flex-wrap: wrap;
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.status-chip--ok {
+  background: color-mix(in srgb, var(--success) 15%, transparent);
+  color: var(--success);
+  border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
+}
+
+.status-chip--warn {
+  background: color-mix(in srgb, var(--warning) 15%, transparent);
+  color: var(--warning);
+  border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
+}
+
+.status-chip--info {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.status-chip--dim {
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--border-subtle);
+}
+
+/* ── Big play-both button ────────────────────────── */
+.btn--play-both {
+  height: var(--h-btn-lg);
+  padding: 0 20px;
+  border-radius: 10px;
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  font-family: 'Space Grotesk', sans-serif;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  letter-spacing: 0.03em;
+}
+.btn--play-both:hover:not(:disabled) {
+  filter: brightness(1.15);
+  box-shadow: 0 0 20px var(--accent);
+}
+.btn--play-both--pause {
+  background: var(--card-hover);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn--play-both--pause:hover:not(:disabled) {
+  border-color: var(--text-muted);
+  box-shadow: none;
+  filter: none;
+}
+
+.btn--sync-play {
+  height: var(--h-btn-lg);
+  min-width: 100px;
+  padding: 0 20px;
+  border-radius: 10px;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  font-family: 'Space Grotesk', sans-serif;
+  background: transparent;
+  color: var(--accent2);
+  border: 1.5px solid var(--accent2);
+  transition: all 0.15s ease;
+}
+.btn--sync-play:hover:not(:disabled) {
+  background: var(--accent2);
+  color: #fff;
+  box-shadow: 0 0 16px var(--accent2);
+}
+
+/* Drifted state — amber pulse to draw attention */
+.btn--sync-play--drifted {
+  color: var(--warning);
+  border-color: var(--warning);
+  animation: drift-pulse 1.5s ease-in-out infinite;
+}
+.btn--sync-play--drifted:hover:not(:disabled) {
+  background: var(--warning);
+  color: #000;
+  box-shadow: 0 0 16px var(--warning);
+}
+
+@keyframes drift-pulse {
+  0%, 100% { box-shadow: 0 0 0px transparent; }
+  50%       { box-shadow: 0 0 10px var(--warning); }
+}
+
+/* ── Drift badge ─────────────────────────────────── */
+.drift-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 7px;
+  border-radius: 20px;
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  background: color-mix(in srgb, var(--warning) 15%, transparent);
+  color: var(--warning);
+  border: 1px solid color-mix(in srgb, var(--warning) 35%, transparent);
+  white-space: nowrap;
+}
+
+/* ── Narrow viewport: keep rows on one line ──────── */
+@media (max-width: 600px) {
+  /* Hide "← scrub both →" center label to save space */
+  .sync-scrubber__center-label { display: none; }
+}
+
+@media (max-width: 420px) {
+  .global-controls { padding: 14px; gap: 12px; }
+
+  .global-controls__row { gap: 5px; }
+
+  /* Hide both section labels at narrow widths — controls are self-evident */
+  .global-controls__section-label { display: none; }
+
+  /* Override: only needed for selectors that target section-label */
+  .btn--play-both,
+  .btn--sync-play { padding: 0 10px; flex-shrink: 1; min-width: 0; }
+
+  /* Speed select can shrink */
+  .speed-select { padding: 0 4px; flex-shrink: 1; min-width: 0; }
+}

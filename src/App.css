@@ -1,0 +1,179 @@
+/* ── App shell ───────────────────────────────────── */
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* ── Header ──────────────────────────────────────── */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+  /* dvh stays tied to physical display height — zoom-invariant.
+     At 100% zoom on 1080p: 6dvh ≈ 65px. At 200% zoom: still ≈ 65 physical px. */
+  /* height: 6dvh; */
+  padding: clamp(4px, 0.7dvh, 14px) 4px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 20px;
+  gap: 16px;
+  overflow: hidden;
+}
+
+.app-header__brand {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 1.2dvh, 16px);
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.app-header__logo {
+  /* Scale with dvh so it never overflows the header at high zoom */
+  width: clamp(22px, 3.2dvh, 38px);
+  height: clamp(22px, 3.2dvh, 38px);
+  flex-shrink: 0;
+  color: var(--accent);
+  filter: drop-shadow(0 0 8px var(--accent));
+}
+
+.app-header__title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(12px, 1.9dvh, 22px);
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.app-header__sub {
+  font-size: clamp(8px, 1dvh, 12px);
+  color: var(--text-muted);
+  font-weight: 400;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+/* ── Main ────────────────────────────────────────── */
+.app-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "player-left  player-right"
+    "controls     controls";
+  gap: 16px;
+  padding-bottom: 24px;
+  align-content: start;
+}
+
+/* ── Player slots ────────────────────────────────── */
+.player-slot { min-width: 0; }
+.player-slot--left  { grid-area: player-left; }
+.player-slot--right { grid-area: player-right; }
+
+/* ── Controls section ────────────────────────────── */
+.controls-section { grid-area: controls; }
+
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: clamp(6px, 0.8dvh, 12px);
+  flex-shrink: 0;
+}
+
+/* ── Keyboard help trigger (desktop only) ──────────── */
+.app-header__help-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(22px, 3.2dvh, 38px);
+  height: clamp(22px, 3.2dvh, 38px);
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: clamp(10px, 1.2dvh, 16px);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, box-shadow 0.15s;
+  flex-shrink: 0;
+}
+.app-header__help-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+}
+/* Hide on touch/mobile — keyboard shortcuts don't apply there */
+@media (hover: none) {
+  .app-header__help-btn { display: none; }
+}
+.app-footer {
+  border-top: 1px solid var(--border-subtle);
+  padding: 14px 4px;
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  text-align: center;
+  letter-spacing: 0.03em;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.app-footer__new-session {
+  /* Hidden on desktop — pull-to-refresh works fine there */
+  display: none;
+}
+
+/* ── Responsive: tablet ──────────────────────────── */
+@media (max-width: 900px) {
+  .app { padding: 0 12px; }
+  .app-header { margin-bottom: 16px; }
+  /* Single column: A → controls → B */
+  .app-main {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "player-left"
+      "controls"
+      "player-right";
+    gap: 12px;
+  }
+}
+
+/* ── Responsive: phone ───────────────────────────── */
+@media (max-width: 600px) {
+  .app { padding: 0 8px; }
+  .app-header { margin-bottom: 12px; }
+  .app-header__sub { display: none; }
+  .app-main { gap: 10px; }
+  .global-controls { padding: 14px; }
+
+  /* New Session button — mobile only, tucked at the bottom of the footer */
+  .app-footer__new-session {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 10px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    /* Needs its own touch-action since body has touch-action:manipulation */
+    touch-action: manipulation;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .app-footer__new-session:hover,
+  .app-footer__new-session:active {
+    color: var(--text);
+    border-color: var(--text-dim);
+  }
+}
